@@ -1,0 +1,41 @@
+FROM alpine:latest
+
+WORKDIR /tmp
+
+# Install dependencies and glibc compatability
+RUN apk update && apk --no-cache add ca-certificates wget libstdc++ \
+    git cmake make gcc g++ pkgconfig fftw-dev mbedtls-dev \
+    yaml-cpp-dev gtest-dev zeromq-dev spdlog-dev fmt-dev \
+    uhd-dev clang linux-headers autoconf automake libtool cppzmq \
+    musl-dev boost-dev lksctp-tools-dev libvolk-dev zeromq-dev gcompat
+
+# Install liquid-dsp
+RUN git clone https://github.com/jgaeddert/liquid-dsp.git && \
+    cd liquid-dsp && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make -j$(nproc) && \
+    make install
+
+WORKDIR /replay-agent
+
+COPY . .
+
+RUN sed -i 's|#include "srsran/srslog/sink.h"|#include "srsran/srslog/sink.h"\n#undef stdout\n#undef stderr|g'   \
+    /replay-agent/lib/src/srslog/sinks/stream_sink.h && \
+    sed -i '21s|.*|#include <sys/time.h>|g' /replay-agent/lib/src/phy/io/netsource.c && \
+    sed -i -e '31,39s|.*||g' -e 's|#include <execinfo.h>||g' /replay-agent/lib/src/common/backtrace.c && \
+    find /replay-agent/lib -type f -exec sed -i 's|uint |unsigned int |g' {} +
+
+RUN mkdir -p build && rm -rf build/*
+
+WORKDIR /replay-agent/build
+
+
+RUN cmake -DENABLE_ZEROMQ=OFF .. && \
+    make -j$(nproc) && \
+    make install
+
+CMD ["sh", "-c", "replay-agent /sniffer.toml"]
+
