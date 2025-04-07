@@ -1,0 +1,16 @@
+[rf]
+#rf_args = "type=b200,master_clock_rate=23.04e6"
+file_path = "/home/charles/collected_iq/pdcch_1842MHz.fc32"
+sample_rate = 23040000
+frequency = 1842500000
+nid_1 = 1
+ssb_numerology = 0
+
+[influxdb]
+metrics_influxdb_enable = true
+metrics_influxdb_url = "0.0.0.0"
+metrics_influxdb_port = 8086
+metrics_influxdb_org = "rtu"
+metrics_influxdb_token = "605bc59413b7d5457d181ccf20f9fda15693f81b068d70396cc183081b264f3b"
+metrics_influxdb_bucket = "rtusystem"
+sniffer_data_identifier = "basic_sniffer"

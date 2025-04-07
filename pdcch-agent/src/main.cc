@@ -1,51 +1,76 @@
-#include "srsran/phy/rf/rf.h"
+#include "config.h"
+#include "filesource.h"
+#include "srsran/phy/sync/ssb.h"
 #include <complex.h>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <pthread.h>
 #include <srsran/phy/common/phy_common.h>
 #include <srsran/phy/utils/vector.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
-#define NOF_RX_ANT 1
-#define NUM_SF (500)
-#define SF_LEN (1920)
-#define RF_BUFFER_SIZE (SF_LEN * NUM_SF)
-#define TX_OFFSET_MS (4)
+#define SSB_NOF_SAMPLES 10000
 
-static cf_t agent_rx_buffer[NOF_RX_ANT][RF_BUFFER_SIZE];
+static srsran_ssb_pattern_t ssb_pattern = SRSRAN_SSB_PATTERN_C;
+static srsran_subcarrier_spacing_t ssb_scs = srsran_subcarrier_spacing_30kHz;
+static srsran_duplex_mode_t duplex_mode = SRSRAN_DUPLEX_MODE_TDD;
 
-static srsran_rf_t agent_radio;
-pthread_t rx_thread;
+int main(int argc, char **argv) {
+  // generic reader class
+  // Open rf dev
+  // search for ssb
+  // decode pbch
+  // unpack mib
+  // print mib
+  cf_t *buffer = srsran_vec_cf_malloc(SSB_NOF_SAMPLES);
 
-int main() {
-  char rf_args[RF_PARAM_LEN] = "rx_file=/home/charles/collected_iq/"
-                               "pdcch_1842MHz.fc32,base_srate=23.04e6";
-  // strncpy(rf_args, (char *)args, RF_PARAM_LEN - 1);
-  if (srsran_rf_open_devname(&agent_radio, "file", rf_args, NOF_RX_ANT)) {
-    fprintf(stderr, "Error opening rf\n");
-    exit(-1);
+  if (argc != 2) {
+    fprintf(stderr, "Usage: pdcch-agent <config file>\n");
+    return SRSRAN_ERROR;
   }
 
-  // set the gain to 40dBm
-  srsran_rf_set_rx_gain_ch(&agent_radio, 0, 40.0);
+  std::string config_path(argv[1]);
+  agent_config_t conf = load(config_path);
 
-  // receive 5 subframes at once (i.e. mimic initial rx that receives one slot)
-  uint32_t num_slots = NUM_SF / 5;
-  uint32_t num_samps_per_slot = SF_LEN * 5;
-  uint32_t num_rxed_samps = 0;
-  for (uint32_t i = 0; i < num_slots; ++i) {
-    void *data_ptr[SRSRAN_MAX_PORTS] = {NULL};
-    for (uint32_t c = 0; c < NOF_RX_ANT; c++) {
-      data_ptr[c] = &agent_rx_buffer[c][i * num_samps_per_slot];
+  srsran_filesource_t fsrc = {};
+  if (srsran_filesource_init(&fsrc, conf.rf.file_path.c_str(),
+                             SRSRAN_COMPLEX_FLOAT_BIN) < SRSRAN_SUCCESS) {
+    printf("Error opening file\n");
+    return SRSRAN_ERROR;
+  }
+
+  // Initialise SSB
+  srsran_ssb_t ssb = {};
+  srsran_ssb_args_t ssb_args = {};
+  ssb_args.enable_decode = true;
+  ssb_args.enable_search = true;
+  if (srsran_ssb_init(&ssb, &ssb_args) < SRSRAN_SUCCESS) {
+    fprintf(stderr, "Init\n");
+    return SRSRAN_ERROR;
+  }
+
+  srsran_ssb_cfg_t ssb_cfg = {};
+  ssb_cfg.srate_hz = conf.rf.sample_rate;
+  ssb_cfg.center_freq_hz = conf.rf.frequency;
+  ssb_cfg.ssb_freq_hz = conf.rf.frequency;
+  ssb_cfg.scs = ssb_scs;
+  ssb_cfg.pattern = ssb_pattern;
+  ssb_cfg.duplex_mode = duplex_mode;
+  if (srsran_ssb_set_cfg(&ssb, &ssb_cfg) < SRSRAN_SUCCESS) {
+    fprintf(stderr, "Error setting SSB configuration\n");
+    return SRSRAN_ERROR;
+  }
+
+  while (srsran_filesource_read(&fsrc, buffer, SSB_NOF_SAMPLES) > 0) {
+    // Perform SSB-CSI Search
+    srsran_ssb_search_res_t res = {};
+    if (srsran_ssb_search(&ssb, buffer, SSB_NOF_SAMPLES, &res) <
+        SRSRAN_SUCCESS) {
+      printf("Error performing SSB-CSI search\n");
     }
-    num_rxed_samps += srsran_rf_recv_with_time_multi(
-        &agent_radio, data_ptr, num_samps_per_slot, true, NULL, NULL);
   }
-
-  printf("received %d samples.\n", num_rxed_samps);
-  printf("closing ue rx device\n");
-
-  srsran_rf_close(&agent_radio);
 
   return SRSRAN_SUCCESS;
 }
