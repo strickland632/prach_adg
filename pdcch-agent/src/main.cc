@@ -1,5 +1,5 @@
 #include "config.h"
-#include "filesource.h"
+#include "data_source.h"
 #include "srsran/phy/sync/ssb.h"
 #include <complex.h>
 #include <cstdio>
@@ -20,11 +20,12 @@ static srsran_subcarrier_spacing_t ssb_scs = srsran_subcarrier_spacing_15kHz;
 static srsran_duplex_mode_t duplex_mode = SRSRAN_DUPLEX_MODE_FDD;
 
 int main(int argc, char **argv) {
+  // MIB decoder thread
+  // SSB decoder thread
+  // PDCCH handler
+  // Pass cell info
   // generic reader class
   // Open rf dev
-  // search for ssb
-  // decode pbch unpack mib
-  // print mib
   cf_t *buffer = srsran_vec_cf_malloc(SSB_NOF_SAMPLES);
 
   if (argc != 2) {
@@ -35,12 +36,9 @@ int main(int argc, char **argv) {
   std::string config_path(argv[1]);
   agent_config_t conf = load(config_path);
 
-  srsran_filesource_t fsrc = {};
-  if (srsran_filesource_init(&fsrc, conf.rf.file_path.c_str(),
-                             SRSRAN_COMPLEX_FLOAT_BIN) < SRSRAN_SUCCESS) {
-    printf("Error opening file\n");
-    return SRSRAN_ERROR;
-  }
+  data_source *src;
+  if (!conf.rf.file_path.empty())
+    src = new data_source(conf.rf.file_path, SRSRAN_COMPLEX_FLOAT_BIN);
 
   // Initialise SSB
   srsran_ssb_t ssb = {};
@@ -64,7 +62,7 @@ int main(int argc, char **argv) {
     return SRSRAN_ERROR;
   }
 
-  while (srsran_filesource_read(&fsrc, buffer, SSB_NOF_SAMPLES) > 0) {
+  while (src.read(buffer, SSB_NOF_SAMPLES) > 0) {
     uint32_t N_id = 0;
     srsran_csi_trs_measurements_t meas = {};
     if (srsran_ssb_csi_search(&ssb, buffer, SSB_NOF_SAMPLES, &N_id, &meas) <
