@@ -7,6 +7,7 @@
 #include <cstring>
 #include <pthread.h>
 #include <srsran/phy/common/phy_common.h>
+#include <srsran/phy/phch/pbch_msg_nr.h>
 #include <srsran/phy/utils/vector.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -21,8 +22,7 @@ int main(int argc, char **argv) {
   // generic reader class
   // Open rf dev
   // search for ssb
-  // decode pbch
-  // unpack mib
+  // decode pbch unpack mib
   // print mib
   cf_t *buffer = srsran_vec_cf_malloc(SSB_NOF_SAMPLES);
 
@@ -64,12 +64,40 @@ int main(int argc, char **argv) {
   }
 
   while (srsran_filesource_read(&fsrc, buffer, SSB_NOF_SAMPLES) > 0) {
-    // Perform SSB-CSI Search
-    srsran_ssb_search_res_t res = {};
-    if (srsran_ssb_search(&ssb, buffer, SSB_NOF_SAMPLES, &res) <
+    uint32_t N_id = 0;
+    srsran_csi_trs_measurements_t meas = {};
+    if (srsran_ssb_csi_search(&ssb, buffer, SSB_NOF_SAMPLES, &N_id, &meas) <
         SRSRAN_SUCCESS) {
       printf("Error performing SSB-CSI search\n");
     }
+
+    // Print measurement
+    char str[512] = {};
+    srsran_csi_meas_info(&meas, str, sizeof(str));
+    printf("measure - search pci=%d %s\n", N_id, str);
+
+    // Perform SSB search
+    srsran_ssb_search_res_t search_res = {};
+    if (srsran_ssb_search(&ssb, buffer, SSB_NOF_SAMPLES, &search_res) <
+        SRSRAN_SUCCESS) {
+      printf("Error performing SSB search\n");
+    }
+
+    // Print decoded PBCH message
+    srsran_pbch_msg_info(&search_res.pbch_msg, str, sizeof(str));
+    printf("search - t_offset=%d pci=%d %s crc=%s\n", search_res.t_offset,
+           search_res.N_id, str, search_res.pbch_msg.crc ? "OK" : "KO");
+
+    // unpack MIB
+    srsran_mib_nr_t mib = {};
+    if (srsran_pbch_msg_nr_mib_unpack(&search_res.pbch_msg, &mib) <
+        SRSRAN_SUCCESS) {
+      printf("Error unpacking PBCH-MIB\n");
+    }
+
+    char mib_info[512] = {};
+    srsran_pbch_msg_nr_mib_info(&mib, mib_info, sizeof(mib_info));
+    printf("PBCH-MIB: %s\n", mib_info);
   }
 
   return SRSRAN_SUCCESS;

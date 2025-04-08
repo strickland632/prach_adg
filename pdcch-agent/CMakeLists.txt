@@ -11,7 +11,7 @@ set_target_properties(pdcch-agent PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
-    LINKER_LANGUAGE CXX 
+    LINKER_LANGUAGE CXX
 )
 
 
@@ -23,17 +23,13 @@ target_include_directories(pdcch-agent PRIVATE
 target_link_libraries(pdcch-agent PRIVATE
 
     -Wl,--start-group
-
-
     srsran_phy
+    srsran_phch
     srsran_common
-    support      
-    srslog       
-
-    
+    support
+    srslog
     -Wl,--end-group
 
-  
     pthread
 
 )
