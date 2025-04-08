@@ -7,6 +7,7 @@
 #include <cstring>
 #include <pthread.h>
 #include <srsran/phy/common/phy_common.h>
+#include <srsran/phy/common/phy_common_nr.h>
 #include <srsran/phy/phch/pbch_msg_nr.h>
 #include <srsran/phy/utils/vector.h>
 #include <stdlib.h>
@@ -14,9 +15,9 @@
 
 #define SSB_NOF_SAMPLES 10000
 
-static srsran_ssb_pattern_t ssb_pattern = SRSRAN_SSB_PATTERN_C;
-static srsran_subcarrier_spacing_t ssb_scs = srsran_subcarrier_spacing_30kHz;
-static srsran_duplex_mode_t duplex_mode = SRSRAN_DUPLEX_MODE_TDD;
+static srsran_ssb_pattern_t ssb_pattern = SRSRAN_SSB_PATTERN_A;
+static srsran_subcarrier_spacing_t ssb_scs = srsran_subcarrier_spacing_15kHz;
+static srsran_duplex_mode_t duplex_mode = SRSRAN_DUPLEX_MODE_FDD;
 
 int main(int argc, char **argv) {
   // generic reader class
@@ -74,7 +75,8 @@ int main(int argc, char **argv) {
     // Print measurement
     char str[512] = {};
     srsran_csi_meas_info(&meas, str, sizeof(str));
-    printf("measure - search pci=%d %s\n", N_id, str);
+    if (meas.rsrp != 0)
+      printf("CSI MEAS - search pci=%d %s\n", N_id, str);
 
     // Perform SSB search
     srsran_ssb_search_res_t search_res = {};
@@ -85,7 +87,9 @@ int main(int argc, char **argv) {
 
     // Print decoded PBCH message
     srsran_pbch_msg_info(&search_res.pbch_msg, str, sizeof(str));
-    printf("search - t_offset=%d pci=%d %s crc=%s\n", search_res.t_offset,
+    if (!search_res.pbch_msg.crc)
+      continue;
+    printf("SSB PBCH - t_offset=%d pci=%d %s crc=%s\n", search_res.t_offset,
            search_res.N_id, str, search_res.pbch_msg.crc ? "OK" : "KO");
 
     // unpack MIB
@@ -97,7 +101,7 @@ int main(int argc, char **argv) {
 
     char mib_info[512] = {};
     srsran_pbch_msg_nr_mib_info(&mib, mib_info, sizeof(mib_info));
-    printf("PBCH-MIB: %s\n", mib_info);
+    printf("MIB - %s\n", mib_info);
   }
 
   return SRSRAN_SUCCESS;
