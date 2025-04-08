@@ -37,6 +37,8 @@ add_subdirectory(ue)
 add_subdirectory(enb)
 add_subdirectory(gnb)
 add_subdirectory(cfr)
+
+# Aggregate object files from subdirectories
 set(srsran_srcs     $<TARGET_OBJECTS:srsran_agc>
         $<TARGET_OBJECTS:srsran_ch_estimation>
         $<TARGET_OBJECTS:srsran_phy_common>
@@ -57,6 +59,33 @@ set(srsran_srcs     $<TARGET_OBJECTS:srsran_agc>
         $<TARGET_OBJECTS:srsran_cfr>
         )
 
-add_library(srsran_phy ${srsran_srcs} )
-target_link_libraries(srsran_phy pthread m ${FFT_LIBRARIES})
+# Create the static library from object files - Explicitly STATIC
+add_library(srsran_phy STATIC ${srsran_srcs})
+
+# --- Define ALL dependencies with PRIVATE scope ---
+# These are needed to *build* srsran_phy, but targets linking srsran_phy
+# generally don't need to call these functions directly.
+target_link_libraries(srsran_phy PRIVATE
+    # Core srsRAN dependencies used by phy object files
+    srsran_common   # Must link common if phy uses its functions/types
+    support         # Must link support if phy uses its functions/types
+    srslog          # Must link srslog if phy uses its functions/types
+
+    # External libraries used by phy object files
+    Threads::Threads # Use imported target for pthreads
+    ${FFT_LIBRARIES} # FFTW library variable/target
+    ${SEC_LIBRARIES} # MbedTLS library variable/target
+    m                # Math library
+    # ${ATOMIC_LIBS} # Uncomment only if CheckAtomic found it was needed and set the variable
+)
+# --- End target_link_libraries ---
+
+
+# Install the static library
 install(TARGETS srsran_phy DESTINATION ${LIBRARY_DIR} OPTIONAL)
+
+# Optional: Define and install a shared library version if needed by other parts
+# add_library(srsran_phy_shared SHARED ${srsran_srcs})
+# target_link_libraries(srsran_phy_shared PRIVATE ...) # Repeat dependencies from above
+# set_target_properties(srsran_phy_shared PROPERTIES OUTPUT_NAME srsran_phy)
+# install(TARGETS srsran_phy_shared DESTINATION ${LIBRARY_DIR} OPTIONAL)
