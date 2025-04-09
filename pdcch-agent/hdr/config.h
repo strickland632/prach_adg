@@ -3,6 +3,7 @@
 
 #define FREQ_DEFAULT 627750000
 #define SRATE_DEFAULT 23040000
+#define GAIN_DEFAULT 50.0
 
 #include "toml.hpp"
 
@@ -24,6 +25,7 @@ typedef struct rf_config_s {
   uint64_t sample_rate;
   double frequency;
   const char *rf_args;
+  double gain;
 } rf_config_t;
 
 typedef struct agent_config_s {
@@ -35,9 +37,10 @@ static agent_config_t load(std::string config_path) {
   printf("Loading config from path: %s\n", config_path.c_str());
   toml::table toml = toml::parse_file(config_path);
   agent_config_t conf;
-  conf.rf.file_path = toml["rf"]["file_path"].value_or(""sv).data();
+  conf.rf.file_path = toml["rf"]["file_path"].value_or("");
   conf.rf.sample_rate = toml["rf"]["sample_rate"].value_or(SRATE_DEFAULT);
   conf.rf.frequency = toml["rf"]["frequency"].value_or(FREQ_DEFAULT);
+  conf.rf.frequency = toml["rf"]["gain"].value_or(GAIN_DEFAULT);
   conf.rf.rf_args = toml["rf"]["rf_args"].value_or("");
 
   conf.influx.metrics_influxdb_enable =

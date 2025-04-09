@@ -28,6 +28,7 @@ target_link_libraries(pdcch-agent PRIVATE
     srsran_common
     support
     srslog
+    srsran_rf
     -Wl,--end-group
 
     pthread

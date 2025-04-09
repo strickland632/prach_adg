@@ -13,8 +13,6 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#define SSB_NOF_SAMPLES 10000
-
 static srsran_ssb_pattern_t ssb_pattern = SRSRAN_SSB_PATTERN_A;
 static srsran_subcarrier_spacing_t ssb_scs = srsran_subcarrier_spacing_15kHz;
 static srsran_duplex_mode_t duplex_mode = SRSRAN_DUPLEX_MODE_FDD;
@@ -26,19 +24,26 @@ int main(int argc, char **argv) {
   // Pass cell info
   // generic reader class
   // Open rf dev
-  cf_t *buffer = srsran_vec_cf_malloc(SSB_NOF_SAMPLES);
+
+  std::string config_path(argv[1]);
+  agent_config_t conf = load(config_path);
+
+  uint32_t sf_len =
+      SRSRAN_SF_LEN_PRB(106); // SRSRAN_SF_LEN_PRB(conf.cell.nof_prb);
+  cf_t *buffer = srsran_vec_cf_malloc(sf_len);
 
   if (argc != 2) {
     fprintf(stderr, "Usage: pdcch-agent <config file>\n");
     return SRSRAN_ERROR;
   }
 
-  std::string config_path(argv[1]);
-  agent_config_t conf = load(config_path);
-
   data_source *src;
   if (!conf.rf.file_path.empty())
-    src = new data_source(conf.rf.file_path, SRSRAN_COMPLEX_FLOAT_BIN);
+    src = new data_source(strdup(conf.rf.file_path.c_str()),
+                          SRSRAN_COMPLEX_FLOAT_BIN);
+  else
+    src = new data_source(strdup(conf.rf.rf_args), conf.rf.gain,
+                          conf.rf.frequency, conf.rf.sample_rate);
 
   // Initialise SSB
   srsran_ssb_t ssb = {};
@@ -62,10 +67,10 @@ int main(int argc, char **argv) {
     return SRSRAN_ERROR;
   }
 
-  while (src.read(buffer, SSB_NOF_SAMPLES) > 0) {
+  while (src->read(buffer, sf_len) == 0) {
     uint32_t N_id = 0;
     srsran_csi_trs_measurements_t meas = {};
-    if (srsran_ssb_csi_search(&ssb, buffer, SSB_NOF_SAMPLES, &N_id, &meas) <
+    if (srsran_ssb_csi_search(&ssb, buffer, sf_len, &N_id, &meas) <
         SRSRAN_SUCCESS) {
       printf("Error performing SSB-CSI search\n");
     }
@@ -78,8 +83,7 @@ int main(int argc, char **argv) {
 
     // Perform SSB search
     srsran_ssb_search_res_t search_res = {};
-    if (srsran_ssb_search(&ssb, buffer, SSB_NOF_SAMPLES, &search_res) <
-        SRSRAN_SUCCESS) {
+    if (srsran_ssb_search(&ssb, buffer, sf_len, &search_res) < SRSRAN_SUCCESS) {
       printf("Error performing SSB search\n");
     }
 
