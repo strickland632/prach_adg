@@ -14,6 +14,8 @@ public:
   int read(cf_t *output, int nof_samples);
 
 private:
+  bool file_init;
+  bool radio_init;
   srsran_filesource_t file_src;
   srsran_rf_t radio_src;
 };

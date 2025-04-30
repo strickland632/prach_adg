@@ -1,10 +1,14 @@
+[log]
+level = "debug"
+
 [rf]
 #rf_args = "type=b200,master_clock_rate=23.04e6"
-file_path = "/home/secureslicing/pdcch_1842MHz.fc32"
+file_path = "/media/simrall/fd5dfe08-63cd-4772-a2c3-89a8e62922d9/pdcch_1842MHz_amarisoft.fc32"
 sample_rate = 23040000
 frequency = 1842500000
-nid_1 = 1
+N_id = 1
 ssb_numerology = 0
+nof_prb = 106
 
 [influxdb]
 metrics_influxdb_enable = true

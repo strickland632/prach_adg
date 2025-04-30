@@ -4,7 +4,10 @@
 #define FREQ_DEFAULT 627750000
 #define SRATE_DEFAULT 23040000
 #define GAIN_DEFAULT 50.0
+#define PRB_DEFAULT 106
 
+#include "logging.h"
+#include "srsran/phy/sync/ssb.h"
 #include "toml.hpp"
 
 using namespace std;
@@ -26,11 +29,20 @@ typedef struct rf_config_s {
   double frequency;
   const char *rf_args;
   double gain;
+  uint64_t nof_prb;
+  uint32_t N_id;
 } rf_config_t;
+
+typedef struct ssb_config_s {
+  srsran_ssb_pattern_t ssb_pattern = SRSRAN_SSB_PATTERN_A;
+  srsran_subcarrier_spacing_t ssb_scs = srsran_subcarrier_spacing_15kHz;
+  srsran_duplex_mode_t duplex_mode = SRSRAN_DUPLEX_MODE_FDD;
+} ssb_config_t;
 
 typedef struct agent_config_s {
   influxdb_config_t influx;
   rf_config_t rf;
+  ssb_config_t ssb;
 } agent_config_t;
 
 static agent_config_t load(std::string config_path) {
@@ -41,6 +53,8 @@ static agent_config_t load(std::string config_path) {
   conf.rf.sample_rate = toml["rf"]["sample_rate"].value_or(SRATE_DEFAULT);
   conf.rf.frequency = toml["rf"]["frequency"].value_or(FREQ_DEFAULT);
   conf.rf.frequency = toml["rf"]["gain"].value_or(GAIN_DEFAULT);
+  conf.rf.nof_prb = toml["rf"]["nof_prb"].value_or(PRB_DEFAULT);
+  conf.rf.N_id = toml["rf"]["N_id"].value_or(0);
   conf.rf.rf_args = toml["rf"]["rf_args"].value_or("");
 
   conf.influx.metrics_influxdb_enable =
@@ -59,6 +73,22 @@ static agent_config_t load(std::string config_path) {
       toml["influxdb"]["metrics_period_secs"].value_or(0.0);
   conf.influx.sniffer_data_identifier =
       toml["influxdb"]["sniffer_data_identifier"].value_or(false);
+
+  // HACK: manually assign
+  conf.ssb.ssb_pattern = SRSRAN_SSB_PATTERN_A;
+  conf.ssb.ssb_scs = srsran_subcarrier_spacing_15kHz;
+  conf.ssb.duplex_mode = SRSRAN_DUPLEX_MODE_FDD;
+
+  std::string log_level_str = toml["log"]["level"].value_or("error");
+
+  if (log_level_str == "error")
+    log_level = ERROR;
+  else if (log_level_str == "info")
+    log_level = INFO;
+  else if (log_level_str == "warning")
+    log_level = WARNING;
+  else if (log_level_str == "debug")
+    log_level = DEBUG;
 
   // toml::array *pdcch_tables = toml["pdcch"].as<toml::array>();
   // for (toml::node &node : *pdcch_tables) {
