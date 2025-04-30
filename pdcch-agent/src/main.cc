@@ -3,6 +3,7 @@
 #include "logging.h"
 #include "mib_decoder.h"
 #include "srsran/phy/sync/ssb.h"
+#include <chrono>
 #include <complex.h>
 #include <cstdio>
 #include <cstdlib>
@@ -14,6 +15,7 @@
 #include <srsran/phy/utils/vector.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <thread>
 
 int main(int argc, char **argv) {
   // MIB decoder thread
@@ -27,7 +29,6 @@ int main(int argc, char **argv) {
   agent_config_t conf = load(config_path);
 
   uint32_t sf_len = SRSRAN_SF_LEN_PRB(conf.rf.nof_prb);
-  cf_t *buffer = srsran_vec_cf_malloc(sf_len);
 
   if (argc != 2) {
     LOG_ERROR("Usage: pdcch-agent <config file>\n");
@@ -43,10 +44,16 @@ int main(int argc, char **argv) {
                           conf.rf.frequency, conf.rf.sample_rate);
 
   mib_decoder mib_d;
-  mib_d.init(conf);
+  mib_d.init(conf, sf_len);
+  mib_d.start_thread();
 
-  while (src->read(buffer, sf_len))
-    mib_d.decode_mib(buffer, sf_len);
+  cf_t *buffer = srsran_vec_cf_malloc(sf_len);
+  while (src->read(buffer, sf_len)) {
+    mib_d.add_frame_to_queue(buffer);
+    buffer = srsran_vec_cf_malloc(sf_len);
+  }
+
+  mib_d.stop_thread();
 
   return SRSRAN_SUCCESS;
 }

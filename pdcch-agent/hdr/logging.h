@@ -20,13 +20,13 @@ extern log_level_t log_level;
 #define LOG_INFO(msg, ...)                                                     \
   do {                                                                         \
     if (log_level >= INFO)                                                     \
-      fprintf(stderr, "[INFO ] " msg "\n", ##__VA_ARGS__);                     \
+      fprintf(stdout, "[INFO ] " msg "\n", ##__VA_ARGS__);                     \
   } while (0)
 
 #define LOG_DEBUG(msg, ...)                                                    \
   do {                                                                         \
     if (log_level >= DEBUG)                                                    \
-      fprintf(stderr, "[DEBUG] " msg "\n", ##__VA_ARGS__);                     \
+      fprintf(stdout, "[DEBUG] " msg "\n", ##__VA_ARGS__);                     \
   } while (0)
 
 #endif

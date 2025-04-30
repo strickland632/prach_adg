@@ -1,11 +1,11 @@
 #include "mib_decoder.h"
 #include <cstdlib>
 
-mib_decoder::mib_decoder() {}
+mib_decoder::mib_decoder() : subframe_queue(20), decoder_running(false) {}
 
 mib_decoder::~mib_decoder() {}
 
-bool mib_decoder::init(const agent_config_t &conf) {
+bool mib_decoder::init(const agent_config_t &conf, uint32_t frame_len) {
   ssb = {};
   ssb_args = {};
   ssb_args.enable_decode = true;
@@ -27,10 +27,11 @@ bool mib_decoder::init(const agent_config_t &conf) {
     return false;
   }
   N_id = conf.rf.N_id;
+  sf_len = frame_len;
+  decoder_running = true;
   return true;
 }
-
-bool mib_decoder::decode_mib(cf_t *buffer, uint32_t sf_len) {
+bool mib_decoder::decode_mib(cf_t *buffer) {
   srsran_csi_trs_measurements_t meas = {};
   if (srsran_ssb_csi_search(&ssb, buffer, sf_len, &N_id, &meas) <
       SRSRAN_SUCCESS) {
@@ -38,9 +39,9 @@ bool mib_decoder::decode_mib(cf_t *buffer, uint32_t sf_len) {
   }
 
   char str[512] = {};
-  srsran_csi_meas_info(&meas, str, sizeof(str));
-  if (meas.rsrp != 0)
-    LOG_DEBUG("CSI MEAS - search pci=%d %s", N_id, str);
+  // srsran_csi_meas_info(&meas, str, sizeof(str));
+  // if (meas.rsrp != 0)
+  // LOG_DEBUG("CSI MEAS - search pci=%d %s", N_id, str);
 
   srsran_ssb_search_res_t search_res = {};
   if (srsran_ssb_search(&ssb, buffer, sf_len, &search_res) < SRSRAN_SUCCESS) {
@@ -65,3 +66,38 @@ bool mib_decoder::decode_mib(cf_t *buffer, uint32_t sf_len) {
   LOG_DEBUG("MIB - %s", mib_info);
   return true;
 }
+
+bool mib_decoder::add_frame_to_queue(cf_t *buffer) {
+  while (!subframe_queue.push(buffer)) {
+    LOG_WARN("failed to push buffer to MIB frame queue");
+  }
+  return true;
+}
+
+void mib_decoder::run_decoder() {
+  LOG_INFO("Starting MIB decoder");
+  cf_t *buffer;
+  bool got_buffer = false;
+  while ((got_buffer = subframe_queue.pop(buffer)) || decoder_running) {
+    if (!got_buffer) {
+      std::this_thread::sleep_for(std::chrono::microseconds(1));
+      continue;
+    }
+    try {
+      decode_mib(buffer);
+    } catch (const std::exception &e) {
+      LOG_ERROR("Exception during decode_mib: %s", e.what());
+    } catch (...) {
+      LOG_ERROR("Unknown exception during decode_mib");
+    }
+    free(buffer);
+  }
+  LOG_INFO("MIB decoder exiting...");
+}
+
+bool mib_decoder::start_thread() {
+  decoder_thread = std::thread(&mib_decoder::run_decoder, this);
+  return true;
+}
+
+void mib_decoder::stop_thread() { decoder_running = false; }

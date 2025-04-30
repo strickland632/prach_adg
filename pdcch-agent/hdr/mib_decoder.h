@@ -1,7 +1,9 @@
 #include "config.h"
 #include "logging.h"
 #include "srsran/phy/sync/ssb.h"
+#include <boost/lockfree/queue.hpp>
 #include <complex.h>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -16,16 +18,23 @@
 
 class mib_decoder {
 public:
-  bool init(const agent_config_t &conf);
-  bool decode_mib(cf_t *buffer, uint32_t sf_len);
+  bool init(const agent_config_t &conf, uint32_t frame_len);
+  bool decode_mib(cf_t *buffer);
+  bool add_frame_to_queue(cf_t *buffer);
+  void run_decoder();
+  bool start_thread();
+  void stop_thread();
+
   mib_decoder();
   ~mib_decoder();
 
 private:
-  // bool is_intialized;
-  //  std::thread mib_thread;
+  bool decoder_running;
   srsran_ssb_t ssb;
   srsran_ssb_args_t ssb_args;
   srsran_ssb_cfg_t ssb_cfg;
   uint32_t N_id;
+  uint32_t sf_len;
+  boost::lockfree::queue<cf_t *> subframe_queue;
+  std::thread decoder_thread;
 };

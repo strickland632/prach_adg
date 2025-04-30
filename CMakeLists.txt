@@ -636,6 +636,8 @@ foreach(_header ${headers})
 endforeach()
 add_custom_target(add_srsran_headers SOURCES ${HEADERS_ALL})
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+
 
 include_directories(lib/include)
 add_subdirectory(lib)
