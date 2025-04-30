@@ -37,16 +37,16 @@ data_source::~data_source() {
   }
 }
 
-int data_source::read(cf_t *output, int nof_samples) {
+bool data_source::read(cf_t *output, int nof_samples) {
   if (!file_init && !radio_init)
-    return -1;
+    return false;
   if (file_init) {
     if (srsran_filesource_read(&file_src, output, nof_samples) <
         SRSRAN_SUCCESS) {
       printf("Error reading from file\n");
-      return -1;
+      return false;
     }
-    return 0;
+    return true;
   }
 
   printf(" ----  Receive %d samples  ---- ", nof_samples);

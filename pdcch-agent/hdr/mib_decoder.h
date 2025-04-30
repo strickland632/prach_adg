@@ -12,6 +12,7 @@
 #include <srsran/phy/utils/vector.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <thread>
 
 class mib_decoder {
 public:
@@ -21,6 +22,8 @@ public:
   ~mib_decoder();
 
 private:
+  // bool is_intialized;
+  //  std::thread mib_thread;
   srsran_ssb_t ssb;
   srsran_ssb_args_t ssb_args;
   srsran_ssb_cfg_t ssb_cfg;

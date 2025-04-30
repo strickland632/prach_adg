@@ -45,9 +45,8 @@ int main(int argc, char **argv) {
   mib_decoder mib_d;
   mib_d.init(conf);
 
-  while (src->read(buffer, sf_len) == 0) {
+  while (src->read(buffer, sf_len))
     mib_d.decode_mib(buffer, sf_len);
-  }
 
   return SRSRAN_SUCCESS;
 }
