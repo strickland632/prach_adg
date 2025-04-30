@@ -7,11 +7,11 @@
 
 class data_source {
 public:
-  data_source(char* file_path, srsran_datatype_t datatype);
-  data_source(char* rf_args, double rf_gain, double rf_freq, double srate);
+  data_source(char *file_path, srsran_datatype_t datatype);
+  data_source(char *rf_args, double rf_gain, double rf_freq, double srate);
   ~data_source();
 
-  int read(cf_t* output, int nof_samples);
+  int read(cf_t *output, int nof_samples);
 
 private:
   srsran_filesource_t file_src;
