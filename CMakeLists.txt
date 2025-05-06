@@ -617,6 +617,9 @@ function(add_nr_advanced_test)
   set_tests_properties(${TNAME} PROPERTIES LABELS "nr;${CTEST_LABELS}")
 endfunction()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+
 # # # # # # ##################################################################
 # Add general includes and dependencies
 # # # # # # ##################################################################
@@ -636,7 +639,6 @@ foreach(_header ${headers})
 endforeach()
 add_custom_target(add_srsran_headers SOURCES ${HEADERS_ALL})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
 
 include_directories(lib/include)

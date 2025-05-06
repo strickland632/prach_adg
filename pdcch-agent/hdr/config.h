@@ -23,6 +23,11 @@ typedef struct influxdb_config {
   std::string sniffer_data_identifier;
 } influxdb_config_t;
 
+typedef struct pdcch_config_s {
+  bool interleaved;
+  uint64_t rnti;
+} pdcch_config_t;
+
 typedef struct rf_config_s {
   std::string file_path;
   uint64_t sample_rate;
@@ -43,6 +48,7 @@ typedef struct agent_config_s {
   influxdb_config_t influx;
   rf_config_t rf;
   ssb_config_t ssb;
+  pdcch_config_t pdcch;
 } agent_config_t;
 
 static agent_config_t load(std::string config_path) {
@@ -56,6 +62,9 @@ static agent_config_t load(std::string config_path) {
   conf.rf.nof_prb = toml["rf"]["nof_prb"].value_or(PRB_DEFAULT);
   conf.rf.N_id = toml["rf"]["N_id"].value_or(0);
   conf.rf.rf_args = toml["rf"]["rf_args"].value_or("");
+
+  conf.pdcch.interleaved = toml["pdcch"]["interleaved"].value_or(false);
+  conf.pdcch.rnti = toml["pdcch"]["rnti"].value_or(0);
 
   conf.influx.metrics_influxdb_enable =
       toml["influxdb"]["metrics_influxdb_enable"].value_or(false);

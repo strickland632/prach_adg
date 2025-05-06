@@ -10,6 +10,10 @@ N_id = 1
 ssb_numerology = 0
 nof_prb = 106
 
+[pdcch]
+interleaved = false
+rnti = 17926
+
 [influxdb]
 metrics_influxdb_enable = true
 metrics_influxdb_url = "0.0.0.0"

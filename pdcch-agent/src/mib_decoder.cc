@@ -1,7 +1,11 @@
 #include "mib_decoder.h"
 #include <cstdlib>
+#include <mutex>
+#include <srsran/phy/phch/pbch_msg_nr.h>
 
-mib_decoder::mib_decoder() : subframe_queue(20), decoder_running(false) {}
+mib_decoder::mib_decoder() : subframe_queue(20), decoder_running(false) {
+  latest_mib = {};
+}
 
 mib_decoder::~mib_decoder() {}
 
@@ -31,6 +35,7 @@ bool mib_decoder::init(const agent_config_t &conf, uint32_t frame_len) {
   decoder_running = true;
   return true;
 }
+
 bool mib_decoder::decode_mib(cf_t *buffer) {
   srsran_csi_trs_measurements_t meas = {};
   if (srsran_ssb_csi_search(&ssb, buffer, sf_len, &N_id, &meas) <
@@ -64,7 +69,18 @@ bool mib_decoder::decode_mib(cf_t *buffer) {
   char mib_info[512] = {};
   srsran_pbch_msg_nr_mib_info(&mib, mib_info, sizeof(mib_info));
   LOG_DEBUG("MIB - %s", mib_info);
+
+  {
+    std::lock_guard<std::mutex> lock(mib_mutex);
+    latest_mib = mib;
+  }
+
   return true;
+}
+
+srsran_mib_nr_t mib_decoder::request_mib() {
+  std::lock_guard<std::mutex> lock(mib_mutex);
+  return latest_mib;
 }
 
 bool mib_decoder::add_frame_to_queue(cf_t *buffer) {
@@ -90,7 +106,7 @@ void mib_decoder::run_decoder() {
     } catch (...) {
       LOG_ERROR("Unknown exception during decode_mib");
     }
-    free(buffer);
+    // free(buffer);
   }
   LOG_INFO("MIB decoder exiting...");
 }

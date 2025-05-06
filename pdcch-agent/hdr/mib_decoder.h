@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <mutex>
 #include <pthread.h>
 #include <srsran/phy/common/phy_common.h>
 #include <srsran/phy/common/phy_common_nr.h>
@@ -25,6 +26,8 @@ public:
   bool start_thread();
   void stop_thread();
 
+  srsran_mib_nr_t request_mib();
+
   mib_decoder();
   ~mib_decoder();
 
@@ -37,4 +40,7 @@ private:
   uint32_t sf_len;
   boost::lockfree::queue<cf_t *> subframe_queue;
   std::thread decoder_thread;
+
+  std::mutex mib_mutex;
+  srsran_mib_nr_t latest_mib;
 };
