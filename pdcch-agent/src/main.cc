@@ -103,15 +103,15 @@ int main(int argc, char **argv) {
     }
     carrier.scs = latest.scs_common;
 
-    srsran_coreset_t coreest0 = {};
+    srsran_coreset_t coreset0 = {};
     srsran_search_space_t search_space0 = {};
 
-    if (!derive_sib1_config(latest, carrier, corset0, search_space0)) {
+    if (!derive_sib1_config(latest, carrier, coreset0, search_space0)) {
       LOG_ERROR ("Failed to derive CORESET0 or SearchSpace0");
       continue;
     }
 
-    if (srsran_pdcch_nr_set_carrier(&pdcch_rx, &carrier, &corset0) < SRSRAN_SUCCESS) {
+    if (srsran_pdcch_nr_set_carrier(&pdcch_rx, &carrier, &coreset0) < SRSRAN_SUCCESS) {
       LOG_ERROR("Failed to set carrier for CORESET0")
       continue;
     }
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
 
     }
 
-    """
+    #if 0
     for (uint32_t frequency_resources = 1;
          frequency_resources < (1U << nof_frequency_resource);
          frequency_resources = ((frequency_resources << 1U) | 1U)) {
@@ -133,8 +133,10 @@ int main(int argc, char **argv) {
       for (coreset.duration = SRSRAN_CORESET_DURATION_MIN;
            coreset.duration <= SRSRAN_CORESET_DURATION_MAX;
            coreset.duration++) {
-        """
-        uint32_t N = srsran_coreset_get_bw(&coreset) * coreset.duration;
+      
+    #endif
+        
+    uint32_t N = srsran_coreset_get_bw(&coreset) * coreset.duration;
         if (conf.pdcch.interleaved && N % 12 != 0) {
           continue;
         }
@@ -270,3 +272,4 @@ int main(int argc, char **argv) {
 
   return SRSRAN_SUCCESS;
 }
+
