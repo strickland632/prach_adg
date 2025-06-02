@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <thread>
+#include "sib1_config.h"
 
 int main(int argc, char **argv) {
   // MIB decoder thread
@@ -102,6 +103,25 @@ int main(int argc, char **argv) {
     }
     carrier.scs = latest.scs_common;
 
+    srsran_coreset_t coreest0 = {};
+    srsran_search_space_t search_space0 = {};
+
+    if (!derive_sib1_config(latest, carrier, corset0, search_space0)) {
+      LOG_ERROR ("Failed to derive CORESET0 or SearchSpace0");
+      continue;
+    }
+
+    if (srsran_pdcch_nr_set_carrier(&pdcch_rx, &carrier, &corset0) < SRSRAN_SUCCESS) {
+      LOG_ERROR("Failed to set carrier for CORESET0")
+      continue;
+    }
+
+    for (uint32_t agg = 0; agg < SRSRAN_SEARCH_SPACE_NOF_AGGREGATION_LEVELS_NR; agg++){
+      search_space0.nof_candidates[agg] = srsran_pdcch_nr_max_candidates_coreset(&coreset0, agg);
+
+    }
+
+    """
     for (uint32_t frequency_resources = 1;
          frequency_resources < (1U << nof_frequency_resource);
          frequency_resources = ((frequency_resources << 1U) | 1U)) {
@@ -109,11 +129,11 @@ int main(int argc, char **argv) {
         uint32_t mask = ((frequency_resources >> i) & 1U);
         coreset.freq_resources[i] = (mask == 1);
       }
-
+    
       for (coreset.duration = SRSRAN_CORESET_DURATION_MIN;
            coreset.duration <= SRSRAN_CORESET_DURATION_MAX;
            coreset.duration++) {
-
+        """
         uint32_t N = srsran_coreset_get_bw(&coreset) * coreset.duration;
         if (conf.pdcch.interleaved && N % 12 != 0) {
           continue;

@@ -58,7 +58,7 @@ static agent_config_t load(std::string config_path) {
   conf.rf.file_path = toml["rf"]["file_path"].value_or("");
   conf.rf.sample_rate = toml["rf"]["sample_rate"].value_or(SRATE_DEFAULT);
   conf.rf.frequency = toml["rf"]["frequency"].value_or(FREQ_DEFAULT);
-  conf.rf.frequency = toml["rf"]["gain"].value_or(GAIN_DEFAULT);
+  conf.rf.gain = toml["rf"]["gain"].value_or(GAIN_DEFAULT);
   conf.rf.nof_prb = toml["rf"]["nof_prb"].value_or(PRB_DEFAULT);
   conf.rf.N_id = toml["rf"]["N_id"].value_or(0);
   conf.rf.rf_args = toml["rf"]["rf_args"].value_or("");
