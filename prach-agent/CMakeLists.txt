@@ -21,13 +21,27 @@ target_include_directories(prach-agent PRIVATE
   ${PROJECT_BINARY_DIR}/lib/include
 )
 
-# --- Link libs ---
-# Threads::Threads: pulls in the correct -pthread
-# ${FFT_LIBRARIES}, ${SEC_LIBRARIES}, ${LIQUID_LIBRARIES}, ${ATOMIC_LIBS} come from the top-level
-target_link_libraries(prach-agent
-  PRIVATE
-    Threads::Threads
-    # srsRAN sub-libs that provide srsran_filesource_* and srsran_rf_recv
+add_executable(prach-agent ${AGENT_SOURCES})
+
+set_target_properties(prach-agent PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED YES
+    CXX_EXTENSIONS NO
+    LINKER_LANGUAGE CXX
+)
+
+target_include_directories(prach-agent PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/${AGENT_HDR_DIR}"
+)
+
+target_link_libraries(prach-agent PRIVATE
+
+    -Wl,--start-group
+    srsran_phy
+    srsran_phch
+    srsran_common
+    support
+    srslog
     srsran_rf
     srsran_common
    
@@ -38,6 +52,7 @@ target_link_libraries(prach-agent
     ${SEC_LIBRARIES}
     ${LIQUID_LIBRARIES}
     ${ATOMIC_LIBS}
+    pthread
 
     m      # libm (some DSP paths use it)
 )
@@ -96,4 +111,4 @@ if (VOLK_LIB)
 endif()
 
 # Install
-install(TARGETS prach-agent DESTINATION bin OPTIONAL)
+install(TARGETS prach-agent DESTINATION /usr/local/bin OPTIONAL)
