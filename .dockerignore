@@ -1,0 +1,11 @@
+.git
+.build
+build
+cmake-build*
+*.o
+*.a
+*.so
+*.dylib
+__pycache__/
+*.log
+.env

@@ -51,7 +51,7 @@ typedef struct agent_config_s {
   pdcch_config_t pdcch;
 } agent_config_t;
 
-static agent_config_t load(std::string config_path) {
+[[maybe_unused]] static agent_config_t load(std::string config_path) {
   printf("Loading config from path: %s\n", config_path.c_str());
   toml::table toml = toml::parse_file(config_path);
   agent_config_t conf;

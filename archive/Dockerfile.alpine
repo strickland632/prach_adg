@@ -1,0 +1,55 @@
+cat > Dockerfile <<'EOF'
+# ---- Stage 1: build ----
+FROM ubuntu:22.04 AS builder
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Toolchain + libs your CMake config requires (based on your CMakeLists.txt)
+# - FFTW3F => libfftw3-dev provides libfftw3f
+# - MbedTLS => libmbedtls-dev
+# - Liquid DSP => libliquid-dev
+# - Boost program_options => libboost-program-options-dev
+# - Optional helpers: pkg-config, git, ccache (if you use it)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential cmake pkg-config git ccache \
+    libfftw3-dev libmbedtls-dev libliquid-dev libboost-program-options-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+# Copy everything (good enough; you can optimize later)
+COPY . .
+
+# Configure out-of-tree build into /src/build
+# TIP: flip any CMake options here, e.g. -DENABLE_UHD=OFF if you want to force-disable UHD
+RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+RUN cmake --build build -j "$(nproc)"
+
+# Install into a clean prefix so we know exactly what to ship
+RUN cmake --install build --prefix /opt/prach-agent
+
+# ---- Stage 2: runtime ----
+FROM debian:bookworm-slim AS runtime
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates libstdc++6 libgcc1 \
+    # If your runtime needs shared libs from dependencies, add them here, e.g.:
+    #   libfftw3-single3  (Debian's single-precision FFTW package name)
+    #   libmbedtls14
+    #   libliquid2d
+    # But in many cases your binary may be self-contained after install.
+    && rm -rf /var/lib/apt/lists/*
+
+# Non-root user (optional but recommended)
+RUN useradd -m -u 10001 appuser
+WORKDIR /app
+
+# Copy installed artifacts
+COPY --from=builder /opt/prach-agent /opt/prach-agent
+ENV PATH="/opt/prach-agent/bin:${PATH}"
+
+USER appuser
+
+# Default entrypoint guesses the main binary is "prach-agent"
+# If the actual binary name differs, adjust this line.
+ENTRYPOINT ["/opt/prach-agent/bin/prach-agent"]
+# Or use: CMD ["--help"]
+EOF

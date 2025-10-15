@@ -1,8 +1,4 @@
-// prach_tx.cc  — UHD + srsRAN PRACH generator, TX, and local detect (C++)
-// Build:
-//   g++ -std=c++17 prach_tx.cc -o prach_tx \
-//       $(pkg-config --cflags --libs uhd) \
-//       $(pkg-config --cflags --libs srsran)
+
 
 #include <cstdio>
 #include <cstdlib>
@@ -32,10 +28,10 @@ static uint32_t root_seq_idx     = 0;
 static uint32_t zero_corr_zone   = 15;
 static uint32_t num_ra_preambles = 0; // use library default
 
-// Example RF defaults — EDIT for your lab setup
-static double   g_tx_rate        = 1.92e6;   // e.g., LTE PRACH test paths
-static double   g_center_freq_hz = 1.850e9;  // lab uplink center freq
-static double   g_tx_gain_db     = 0.0;      // depends on cables/attenuators
+// Example RF defaults — EDIT 
+static double   g_tx_rate        = 1.92e6;   
+static double   g_center_freq_hz = 1.850e9;  // uplink center freq
+static double   g_tx_gain_db     = 0.0;      // cables/attenuators
 
 // --------- helpers ----------
 static inline unsigned long long us_since(const timeval& a, const timeval& b) 
@@ -88,7 +84,7 @@ static void parse_args(int argc, char** argv, std::string& dev_args)
   }
 }
 
-// -------- UHD TX: send PRACH CP+sequence ----------
+//UHD TX: send PRACH CP+sequence
 static void tx_send_prach(const uhd::usrp::multi_usrp::sptr& usrp,
                           const cf_t* buf, size_t nsamps_total,
                           double tx_rate, double center_freq_hz, double tx_gain_db,
@@ -119,7 +115,8 @@ static void tx_send_prach(const uhd::usrp::multi_usrp::sptr& usrp,
   while (offset < nsamps_total) {
     const size_t to_send = std::min(mtu, nsamps_total - offset);
     const void*  chunk   = static_cast<const void*>(buf + offset);
-    const size_t sent    = tx->send(chunk, to_send, md);
+    const void* buffs[] = { chunk };
+    const size_t sent    = tx->send(buffs, to_send, md);
 
     if (sent != to_send) throw std::runtime_error("Short send on PRACH burst");
 
@@ -130,7 +127,8 @@ static void tx_send_prach(const uhd::usrp::multi_usrp::sptr& usrp,
 
   // End of burst
   md.end_of_burst = true;
-  tx->send(nullptr, 0, md);
+  const void* eob_buffs[] = { nullptr };
+  tx->send(eob_buffs, 0, md);
 }
 
 int main(int argc, char** argv)
@@ -181,43 +179,46 @@ int main(int argc, char** argv)
   uint32_t indices[64] = {0};
   uint32_t n_indices   = 0;
 
-  // ---- Generate, TX, and detect each preamble index ----
-  for (uint32_t seq_index = 0; seq_index < 64; ++seq_index) {
-    // Generate: preamble = [ CP (N_cp) | sequence (N_seq) ]
-    if (srsran_prach_gen(&prach, seq_index, 0 /* freq-shift idx */, preamble) != SRSRAN_SUCCESS) {
-      fprintf(stderr, "srsran_prach_gen failed at seq=%u\n", seq_index);
-      srsran_prach_free(&prach);
-      return EXIT_FAILURE;
-    }
+  while (1)
+  {
+    // ---- Generate, TX, and detect each preamble index ----
+    for (uint32_t seq_index = 0; seq_index < 64; ++seq_index) {
+      // Generate: preamble = [ CP (N_cp) | sequence (N_seq) ]
+      if (srsran_prach_gen(&prach, seq_index, 0 /* freq-shift idx */, preamble) != SRSRAN_SUCCESS) {
+        fprintf(stderr, "srsran_prach_gen failed at seq=%u\n", seq_index);
+        srsran_prach_free(&prach);
+        return EXIT_FAILURE;
+      }
 
-    // --- Transmit CP + sequence over UHD ---
-    const size_t nsamps_total = prach.N_cp + prach.N_seq;
-    tx_send_prach(usrp, preamble, nsamps_total,
-                  g_tx_rate, g_center_freq_hz, g_tx_gain_db, 0.050 /* 50ms */);
+      // --- Transmit CP + sequence over UHD ---
+      const size_t nsamps_total = prach.N_cp + prach.N_seq;
+      tx_send_prach(usrp, preamble, nsamps_total,
+                    g_tx_rate, g_center_freq_hz, g_tx_gain_db, 0.050 /* 50ms */);
 
-    // --- Local detect (skip CP) for verification ---
-    gettimeofday(&t0, nullptr);
-    n_indices = 0;
-    if (srsran_prach_detect(&prach,
-                            0,                         // time shift (samples)
-                            &preamble[prach.N_cp],     // pointer to start of sequence
-                            prach.N_seq,               // sequence length
-                            indices, &n_indices) != SRSRAN_SUCCESS) {
-      fprintf(stderr, "srsran_prach_detect failed at seq=%u\n", seq_index);
-      srsran_prach_free(&prach);
-      return EXIT_FAILURE;
-    }
-    gettimeofday(&t1, nullptr);
+      // --- Local detect (skip CP) for verification ---
+      gettimeofday(&t0, nullptr);
+      n_indices = 0;
+      if (srsran_prach_detect(&prach,
+                              0,                         // time shift (samples)
+                              &preamble[prach.N_cp],     // pointer to start of sequence
+                              prach.N_seq,               // sequence length
+                              indices, &n_indices) != SRSRAN_SUCCESS) {
+        fprintf(stderr, "srsran_prach_detect failed at seq=%u\n", seq_index);
+        srsran_prach_free(&prach);
+        return EXIT_FAILURE;
+      }
+      gettimeofday(&t1, nullptr);
 
-    printf("seq=%2u  detect_time=%6llu us  found=%u",
-           seq_index, us_since(t0, t1), n_indices);
+      printf("seq=%2u  detect_time=%6llu us  found=%u",
+            seq_index, us_since(t0, t1), n_indices);
 
-    if (n_indices == 1 && indices[0] == seq_index) {
-      printf("  [OK]\n");
-    } else {
-      printf("  [MISMATCH: expected %u]\n", seq_index);
-      srsran_prach_free(&prach);
-      return EXIT_FAILURE;
+      if (n_indices == 1 && indices[0] == seq_index) {
+        printf("  [OK]\n");
+      } else {
+        printf("  [MISMATCH: expected %u]\n", seq_index);
+        srsran_prach_free(&prach);
+        return EXIT_FAILURE;
+      }
     }
   }
 
