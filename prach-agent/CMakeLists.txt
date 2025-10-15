@@ -21,8 +21,6 @@ target_include_directories(prach-agent PRIVATE
   ${PROJECT_BINARY_DIR}/lib/include
 )
 
-add_executable(prach-agent ${AGENT_SOURCES})
-
 set_target_properties(prach-agent PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
@@ -50,7 +48,6 @@ target_link_libraries(prach-agent PRIVATE
     # External deps discovered by top-level
     ${FFT_LIBRARIES}
     ${SEC_LIBRARIES}
-    ${LIQUID_LIBRARIES}
     ${ATOMIC_LIBS}
     pthread
 
