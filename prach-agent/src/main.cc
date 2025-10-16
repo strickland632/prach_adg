@@ -14,21 +14,22 @@
 #include <uhd/types/tune_request.hpp>
 #include <uhd/types/metadata.hpp>
 
+#include "args.h"
 extern "C" {
 #include "srsran/srsran.h"
 }
 
 #define MAX_LEN 70176
 
-// ------- CLI defaults -------
+// ------- CLI defaults ------- //get these from the .yaml?
 static bool     is_nr            = false;
 static uint32_t nof_prb          = 50;
 static uint32_t config_idx       = 3;
 static uint32_t root_seq_idx     = 0;
 static uint32_t zero_corr_zone   = 15;
-static uint32_t num_ra_preambles = 0; // use library default
+static uint32_t num_ra_preambles = 0; // use library 
 
-// Example RF defaults — EDIT 
+// Example RF defaults — EDIT //get from config? sarah liz
 static double   g_tx_rate        = 1.92e6;   
 static double   g_center_freq_hz = 1.850e9;  // uplink center freq
 static double   g_tx_gain_db     = 0.0;      // cables/attenuators
@@ -54,37 +55,40 @@ static void usage(const char* prog)
   printf("  --addr <str>    UHD device args (e.g., addr=192.168.10.2)\n");
 }
 
-static void parse_args(int argc, char** argv, std::string& dev_args) 
-{
-  // handle long options manually
-  for (int i = 1; i < argc; ++i) {
-    if (strcmp(argv[i], "--rate") == 0 && i + 1 < argc) {
-      g_tx_rate = atof(argv[++i]);
-    } else if (strcmp(argv[i], "--freq") == 0 && i + 1 < argc) {
-      g_center_freq_hz = atof(argv[++i]);
-    } else if (strcmp(argv[i], "--gain") == 0 && i + 1 < argc) {
-      g_tx_gain_db = atof(argv[++i]);
-    } else if (strcmp(argv[i], "--addr") == 0 && i + 1 < argc) {
-      dev_args = argv[++i];
-    }
-  }
+//dont need to parse args from cmdjust pull from yalm
 
-  // short opts for PRACH/srsRAN params
-  optind = 1; // reset for getopt
-  int opt;
-  while ((opt = getopt(argc, argv, "n:f:r:z:N:")) != -1) {
-    switch (opt) {
-      case 'n': nof_prb        = (uint32_t)strtoul(optarg, nullptr, 10); break;
-      case 'f': config_idx     = (uint32_t)strtoul(optarg, nullptr, 10); break;
-      case 'r': root_seq_idx   = (uint32_t)strtoul(optarg, nullptr, 10); break;
-      case 'z': zero_corr_zone = (uint32_t)strtoul(optarg, nullptr, 10); break;
-      case 'N': is_nr          = (uint32_t)strtoul(optarg, nullptr, 10) > 0; break;
-      default:  usage(argv[0]); exit(EXIT_FAILURE);
-    }
-  }
-}
+// static void parse_args(int argc, char** argv, std::string& dev_args) 
+// {
+//   // handle long options manually
+//   for (int i = 1; i < argc; ++i) {
+//     if (strcmp(argv[i], "--rate") == 0 && i + 1 < argc) {
+//       g_tx_rate = atof(argv[++i]);
+//     } else if (strcmp(argv[i], "--freq") == 0 && i + 1 < argc) {
+//       g_center_freq_hz = atof(argv[++i]);
+//     } else if (strcmp(argv[i], "--gain") == 0 && i + 1 < argc) {
+//       g_tx_gain_db = atof(argv[++i]);
+//     } else if (strcmp(argv[i], "--addr") == 0 && i + 1 < argc) {
+//       dev_args = argv[++i];
+//     }
+//   }
 
+//   // short opts for PRACH/srsRAN params
+//   optind = 1; // reset for getopt
+//   int opt;
+//   while ((opt = getopt(argc, argv, "n:f:r:z:N:")) != -1) {
+//     switch (opt) {
+//       case 'n': nof_prb        = (uint32_t)strtoul(optarg, nullptr, 10); break;
+//       case 'f': config_idx     = (uint32_t)strtoul(optarg, nullptr, 10); break;
+//       case 'r': root_seq_idx   = (uint32_t)strtoul(optarg, nullptr, 10); break;
+//       case 'z': zero_corr_zone = (uint32_t)strtoul(optarg, nullptr, 10); break;
+//       case 'N': is_nr          = (uint32_t)strtoul(optarg, nullptr, 10) > 0; break;
+//       default:  usage(argv[0]); exit(EXIT_FAILURE);
+//     }
+//   }
+// }
+//end read in
 //UHD TX: send PRACH CP+sequence
+//wrap inside of a struct before sending SARAH ELIZABETH
 static void tx_send_prach(const uhd::usrp::multi_usrp::sptr& usrp,
                           const cf_t* buf, size_t nsamps_total,
                           double tx_rate, double center_freq_hz, double tx_gain_db,
@@ -133,26 +137,46 @@ static void tx_send_prach(const uhd::usrp::multi_usrp::sptr& usrp,
 
 int main(int argc, char** argv)
 {
-  std::string dev_args; // e.g., "addr=192.168.10.2"
-  parse_args(argc, argv, dev_args);
+  std::string config_file = "basic_prach.yaml"; //path?
 
-  // ---- Create USRP ----
-  auto usrp = uhd::usrp::multi_usrp::make(dev_args);
-  // Simple time base init (no GPSDO/PPS here)
-  usrp->set_time_now(uhd::time_spec_t(0.0));
+  for (int i = 1; i < argc; ++i) {
+    if (std::strcmp(argv[i], "--config") == 0 && i + 1 < argc) {
+      config_file = argv[++i];
+      break;
+    }
+  }
+
+  if (config_file.empty()) {
+    fprintf(stderr, "Usage: prach --config [config file]\n");
+    return EXIT_FAILURE;
+  }
+
+  //raes decoded is what other guy is doingr messag
+  // std::string dev_args; // e.g., "addr=192.168.10.2"
+  // parse_args(argc, argv, dev_args);
+  
+
+  // Load config from YAML
+  all_args_t args = parseConfig(config_file);
+
+// //sarah delete this
+//   // ---- Create USRP ----
+//   auto usrp = uhd::usrp::multi_usrp::make(dev_args);
+//   // Simple time base init (no GPSDO/PPS here)
+//   usrp->set_time_now(uhd::time_spec_t(0.0));
 
   // ---- Build PRACH config ----
   srsran_prach_t     prach;
   srsran_prach_cfg_t prach_cfg;
   ZERO_OBJECT(prach_cfg);
-
-  prach_cfg.is_nr            = is_nr;
-  prach_cfg.config_idx       = config_idx;
+//this stuff would be from args double check sarah liz
+  prach_cfg.is_nr            = args.is_nr;
+  prach_cfg.config_idx       = args.config_idx;
   prach_cfg.hs_flag          = false;     // high-speed flag
   prach_cfg.freq_offset      = 0;
-  prach_cfg.root_seq_idx     = root_seq_idx;
-  prach_cfg.zero_corr_zone   = zero_corr_zone;
-  prach_cfg.num_ra_preambles = num_ra_preambles;
+  prach_cfg.root_seq_idx     = args.root_seq_idx;
+  prach_cfg.zero_corr_zone   = args.zero_corr_zone;
+  prach_cfg.num_ra_preambles = args.num_ra_preambles;
 
   // PRACH buffer (cf_t is srsRAN complex float)
   cf_t preamble[MAX_LEN];
@@ -189,11 +213,11 @@ int main(int argc, char** argv)
         srsran_prach_free(&prach);
         return EXIT_FAILURE;
       }
-
+//double check sarah liz
       // --- Transmit CP + sequence over UHD ---
       const size_t nsamps_total = prach.N_cp + prach.N_seq;
       tx_send_prach(usrp, preamble, nsamps_total,
-                    g_tx_rate, g_center_freq_hz, g_tx_gain_db, 0.050 /* 50ms */);
+                    args.g_tx_rate, args.g_center_freq_hz, args.g_tx_gain_db, 0.050 /* 50ms */);
 
       // --- Local detect (skip CP) for verification ---
       gettimeofday(&t0, nullptr);

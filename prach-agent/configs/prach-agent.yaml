@@ -1,0 +1,123 @@
+prach_config:
+  something:
+    is_nr:  #Y/N
+    config_idx: #something
+    high_speed_flag:
+    freq_offset: 0
+    root_seq_idx:
+    nof_prb:
+    config_idx:
+    zero_corr_zone:
+    num_ra_preambles:
+rfr_congif:
+  something:
+    freq:
+
+
+
+#how the gnb is configured:
+
+# This example configuration outlines how to configure the srsRAN Project gNB to create a single TDD cell
+# transmitting in band 78, with 20 MHz bandwidth and 30 kHz sub-carrier-spacing. A USRP B200 is configured
+# as the RF frontend using split 8. Note in this example an external clock source is not used, so the sync
+# is not defined and the default is used.
+
+cu_cp:
+  amf:
+    addr: 127.0.1.100
+    port: 38412
+    bind_addr: 127.0.0.1
+    supported_tracking_areas:
+      - tac: 7
+        plmn_list:
+          - plmn: "00101"
+            tai_slice_support_list:
+              - sst: 1
+
+ru_sdr:
+  device_driver: uhd
+  device_args: type=b200,num_recv_frames=64,num_send_frames=64
+  srate: 23.04
+  otw_format: sc12
+  tx_gain: 80
+  rx_gain: 40
+
+cell_cfg:
+  dl_arfcn: 632628
+  band: 78
+  channel_bandwidth_MHz: 20
+  common_scs: 30
+  plmn: "00101"
+  tac: 7
+  pci: 1
+
+log:
+  filename: /tmp/gnb.log
+  all_level: warning
+
+pcap:
+  mac_enable: false
+  mac_filename: /tmp/gnb_mac.pcap
+  ngap_enable: false
+  ngap_filename: /tmp/gnb_ngap.pcap
+
+#this is how the jammer did its .yaml
+amplitude: 0.7
+amplitude_width: 0.05
+center_frequency: 3.619200e9
+bandwidth: 40e6
+initial_phase: 0
+sampling_freq: 46.080000e6
+num_samples: 20000
+output_iq_file: "output.fc32"
+output_csv_file: "output.csv"
+write_iq: false
+write_csv: true
+device_args: "type=b200"
+tx_gain: 89.5
+
+#this is my work
+# // ------- CLI defaults ------- //get these from the .yaml?
+is_nr: false
+nof_prb: 50
+config_idx: 3
+root_seq_idx: 0
+zero_corr_zone: 15
+
+
+# // Example RF defaults — EDIT //get from config? sarah liz
+g_tx_rate: 1.92e6  
+g_center_freq_hz: 1.850e9  #// uplink center freq
+g_tx_gain_db: 0.0      #// cables/attenuators
+
+
+
+static void parse_args(int argc, char** argv, std::string& dev_args) 
+{
+  // handle long options manually
+  for (int i = 1; i < argc; ++i) {
+    if (strcmp(argv[i], "--rate") == 0 && i + 1 < argc) {
+      g_tx_rate = atof(argv[++i]);
+    } else if (strcmp(argv[i], "--freq") == 0 && i + 1 < argc) {
+      g_center_freq_hz = atof(argv[++i]);
+    } else if (strcmp(argv[i], "--gain") == 0 && i + 1 < argc) {
+      g_tx_gain_db = atof(argv[++i]);
+    } else if (strcmp(argv[i], "--addr") == 0 && i + 1 < argc) {
+      dev_args = argv[++i];
+    }
+  }
+
+  // short opts for PRACH/srsRAN params
+  optind = 1; // reset for getopt
+  int opt;
+  while ((opt = getopt(argc, argv, "n:f:r:z:N:")) != -1) {
+    switch (opt) {
+      case 'n': nof_prb        = (uint32_t)strtoul(optarg, nullptr, 10); break;
+      case 'f': config_idx     = (uint32_t)strtoul(optarg, nullptr, 10); break;
+      case 'r': root_seq_idx   = (uint32_t)strtoul(optarg, nullptr, 10); break;
+      case 'z': zero_corr_zone = (uint32_t)strtoul(optarg, nullptr, 10); break;
+      case 'N': is_nr          = (uint32_t)strtoul(optarg, nullptr, 10) > 0; break;
+      default:  usage(argv[0]); exit(EXIT_FAILURE);
+    }
+  }
+}

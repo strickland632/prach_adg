@@ -1,8 +1,10 @@
 # sarah
+cd ./prach-agent
 sudo docker build -t prach-agent:latest .
 sudo docker run --rm -it prach-agent:latest --help
 
 
+docker run --mount=type=bind,source=/path-to-downloaded-samples-folder/,target=/5gsniffer/5gsniffer/test/samples/ -it 5gsniffer:latest 
 
 # 5GSniffer
 5GSniffer is a free open-source 5G Physical Downlink Control Channel (PDCCH) blind decoder. The tool decodes the PDCCH of a specific 5G base station (gNB), which contains the Downlink Control Information (DCI). This reveals the Radio Network Temporary Identifiers (RNTI) that are present in the cell, as well as other information enabling traffic analysis. 5GSniffer is optimized to overcome several of the challenges introduced by the 5G design. For instance, decoding requires descrambling with information (RNTI and pdcch-DMRS-ScramblingID) provided to the UE in encrypted message. The code is written in C++ and uses optimization libraries. The sniffer was developed from scratch but uses srsRAN libraries as support (e.g., polar decoding).

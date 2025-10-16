@@ -1,0 +1,26 @@
+# prach:
+is_nr: false
+nof_prb: 50
+config_idx: 3
+root_seq_idx: 0
+zero_corr_zone: 15
+freq_offset: 0
+num_ra_preambles: 0
+# rf:
+g_tx_rate: 1.92e6
+g_center_freq_hz: .850e9
+g_tx_gain_db: 0.0
+
+    # //prach config details - add one for number to end?
+# is_nr
+# nof_prb
+# config_idx
+# root_seq_idx
+# zero_corr_zone
+# freq_offset
+# num_ra_preambles
+#   # //these are rf details
+# g_tx_rate
+# g_center_freq_hz
+# g_tx_gain_db
+

@@ -43,7 +43,7 @@ include(SRSRANVersion) #sets version information
 include(SRSRANPackage) #setup cpack
 
 include(CTest)
-
+###SARAH ELIZABETH add yaml below?
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CTestCustom.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/cmake/CTestCustom.cmake"

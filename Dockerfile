@@ -31,4 +31,7 @@ COPY . .
 RUN rm -rf build && mkdir -p build && cd build && cmake -DENABLE_ZEROMQ=ON .. && make -j$(nproc) && make install && ldconfig
 
 
+#this is where you change how itll be run, find the larger project he added it to ///wherever they integrated everything and 
+
 CMD ["prach-agent", "--config", "/prach.toml"]
+#CMD [ "sh", "-c", "/usr/local/bin/jammer --config /jammer.yaml $ARGS" ]

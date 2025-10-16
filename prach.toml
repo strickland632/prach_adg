@@ -1,0 +1,7 @@
+processes:
+ - type: "prach-agent"
+   id: "prach-agent"
+   config_file: "configs/something.yaml"
+   rf:
+      type: "b200"
+      
