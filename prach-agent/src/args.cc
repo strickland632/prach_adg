@@ -21,8 +21,15 @@ all_args_t parseConfig(
   REQUIRE_FIELD(config, num_ra_preambles);
 
   REQUIRE_FIELD(config, g_tx_rate);
-  REQUIRE_FIELD(config, g_center_freq_hz;
+  REQUIRE_FIELD(config, g_center_freq_hz);
   REQUIRE_FIELD(config, g_tx_gain_db);
+
+
+  REQUIRE_FIELD(config, rf);
+  REQUIRE_FIELD(config, device);
+  REQUIRE_FIELD(config, device_args);
+  REQUIRE_FIELD(config, filepath);
+
 
   all_args_t args; // an instance of struct
   args.is_nr        = config["is_nr"].as<bool>();

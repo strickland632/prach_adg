@@ -1,17 +1,61 @@
 # prach:
 is_nr: false
-nof_prb: 50
-config_idx: 3
-root_seq_idx: 0
-zero_corr_zone: 15
-freq_offset: 0
-num_ra_preambles: 0
-# rf:
+nof_prb: 50 #carrier bandwith frp, PRB- physical resource block
+config_idx: 0 #given direct from SIB1
+root_seq_idx: 1 #given from SIB 1839: 1
+zero_corr_zone: 15 #given direct from SIB1
+freq_offset: 1 #msg1_teq_start from sib?
+num_ra_preambles: 8 #from SIB?
+
 g_tx_rate: 1.92e6
 g_center_freq_hz: .850e9
 g_tx_gain_db: 0.0
 
-    # //prach config details - add one for number to end?
+
+
+
+#from SIB
+#config_index: 0
+msg1_FDM: one
+msg1_freqStart: 1
+# zero_cprelation_zone_config: 15
+preamble_recieved_targer_power: -110
+preamble_trans_max: n8 #max to tranmit? num_ra_preambles
+power_ramping_step: dB4
+ra_response_window: sl10
+
+root_sequence:
+    1839: 1
+
+cell_id: 500, config_index 0; root_seq: 1, zero_cor_config: 15, fequOffset: 400, ta_usec; 13.0
+
+tti_tx: 5611 (is this a time?)
+CFO: -0.10KHz
+nof_sf: 1
+target_power: 1.- dBm
+#end sib
+
+rf:
+    device: uhd #or zmq
+    device_args: "type=b200" #?/?//??? below would be in that?
+    # args:
+    #     g_tx_rate: 1.92e6
+    #     g_center_freq_hz: .850e9
+    #     g_tx_gain_db: 0.0
+    filepath: "./file" #is this to the device?
+
+
+# look at .dat files
+# rf needs type and args- files zmg and udh
+#     device args for each/string blah confitional statements (file path/zmg something reachable/udh device exists?
+    
+#     //write to an output file/ specteum to it? see if you get output from gnb)
+
+#     set ue log to debug - should log prach stuff?
+#     # //prach config details - add one for number to end?
+
+
+
 # is_nr
 # nof_prb
 # config_idx

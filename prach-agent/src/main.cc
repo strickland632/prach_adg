@@ -21,13 +21,13 @@ extern "C" {
 
 #define MAX_LEN 70176
 
-// ------- CLI defaults ------- //get these from the .yaml?
+// ------- CLI defaults ------- //get these from the .yaml instead?
 static bool     is_nr            = false;
 static uint32_t nof_prb          = 50;
-static uint32_t config_idx       = 3;
+static uint32_t config_idx       = 3; //get directly
 static uint32_t root_seq_idx     = 0;
-static uint32_t zero_corr_zone   = 15;
-static uint32_t num_ra_preambles = 0; // use library 
+static uint32_t zero_corr_zone   = 15; //get directly
+static uint32_t num_ra_preambles = 0; //
 
 // Example RF defaults — EDIT //get from config? sarah liz
 static double   g_tx_rate        = 1.92e6;   
@@ -203,7 +203,7 @@ int main(int argc, char** argv)
   uint32_t indices[64] = {0};
   uint32_t n_indices   = 0;
 
-  while (1)
+  while (true)
   {
     // ---- Generate, TX, and detect each preamble index ----
     for (uint32_t seq_index = 0; seq_index < 64; ++seq_index) {
@@ -213,7 +213,7 @@ int main(int argc, char** argv)
         srsran_prach_free(&prach);
         return EXIT_FAILURE;
       }
-//double check sarah liz
+  //double check sarah liz
       // --- Transmit CP + sequence over UHD ---
       const size_t nsamps_total = prach.N_cp + prach.N_seq;
       tx_send_prach(usrp, preamble, nsamps_total,
