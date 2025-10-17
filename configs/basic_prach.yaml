@@ -14,26 +14,29 @@ g_tx_gain_db: 0.0
 
 
 
-#from SIB
-#config_index: 0
-msg1_FDM: one
-msg1_freqStart: 1
-# zero_cprelation_zone_config: 15
-preamble_recieved_targer_power: -110
-preamble_trans_max: n8 #max to tranmit? num_ra_preambles
-power_ramping_step: dB4
-ra_response_window: sl10
+# #from SIB
+# #config_index: 0
+# msg1_FDM: one
+# msg1_freqStart: 1
+# # zero_cprelation_zone_config: 15
+# preamble_recieved_targer_power: -110
+# preamble_trans_max: n8 #max to tranmit? num_ra_preambles
+# power_ramping_step: dB4
+# ra_response_window: sl10
 
-root_sequence:
-    1839: 1
+# root_sequence:
+#     1839: 1
 
-cell_id: 500, config_index 0; root_seq: 1, zero_cor_config: 15, fequOffset: 400, ta_usec; 13.0
+# cell_id: 500, config_index 0; root_seq: 1, zero_cor_config: 15, fequOffset: 400, ta_usec; 13.0
 
-tti_tx: 5611 (is this a time?)
-CFO: -0.10KHz
-nof_sf: 1
-target_power: 1.- dBm
-#end sib
+# tti_tx: 5611 (is this a time?)
+# CFO: -0.10KHz
+# nof_sf: 1
+# target_power: 1.- dBm
+# #end sib
+# ssb-perRACH-OccasionAndCB-PreamblesPerSSB: #
+
+
 
 rf:
     device: uhd #or zmq
