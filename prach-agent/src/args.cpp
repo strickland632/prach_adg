@@ -6,6 +6,12 @@
     throw std::runtime_error("Missing required field in config: '" #key "'");  \
   }
 
+// all_args_t parseConfig(
+//     const std::string &filename) { // change the filename to the real filename
+
+//   YAML::Node config =
+//       YAML::LoadFile(filename); // change the filename to its real filename
+
 all_args_t parseConfig(
     const std::string &filename) { // change the filename to the real filename
 
@@ -41,9 +47,15 @@ all_args_t parseConfig(
   args.num_ra_preambles    = config["num_ra_preambles"].as<uint32_t>();
 
   args.g_tx_rate   = config["g_tx_rate"].as<double>();
-  args.og_center_freq_hz  = config["og_center_freq_hz"].as<double>();
+  args.g_center_freq_hz  = config["og_center_freq_hz"].as<double>();
   args.g_tx_gain_db         = config["g_tx_gain_db"].as<double>();
-
+  //rf_args_s rf_args;
+  // rf_args.device = congif["rf"]["device"].as<uint32_t>();
+  // rf_args.device_args = congif["rf"]["device_args"].as<uint32_t>();
+  // rf_args.filepath = congif["rf"]["filepath"].as<std::string>();
+  args.rf.device = config["rf"]["device"].as<uint32_t>();
+  args.rf.device_args = config["rf"]["device_args"].as<uint32_t>();
+  args.rf.filepath = config["rf"]["filepath"].as<std::string>();
   return args;
 }
 

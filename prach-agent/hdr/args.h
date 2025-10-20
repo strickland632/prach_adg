@@ -5,11 +5,16 @@
 #include <iostream>
 #include <yaml-cpp/yaml.h>
 
+
+
 typedef struct rf_args_s {
   std::string device_args;
   float tx_gain;
-} rf_args_t;
+  std::string filepath;
+  std::string device;
 
+} rf_args_t;
+//different for zmg/uhd? or do that in main?
 typedef struct all_args_s {
     //prach config details - add one for number of 
     static bool     is_nr;
@@ -19,11 +24,11 @@ typedef struct all_args_s {
     static uint32_t zero_corr_zone; //determined in RRC message 0-15
     static uint32_t freq_offset; //0 default
     static uint32_t num_ra_preambles; // 0 is default
-    //these are rf details
+    //these are rf details?
     static double   g_tx_rate; //        = 1.92e6;   
     static double   g_center_freq_hz; // = 1.850e9;  // uplink center freq
     static double   g_tx_gain_db; //     = 0.0;      // cables/attenuators
-
+    rf_args_t rf;
 
 //   float amplitude;
 //   float amplitude_width;

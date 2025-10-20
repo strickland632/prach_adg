@@ -1,0 +1,46 @@
+// #include "config.h"
+// #include "logging.h"
+// #include "srsran/phy/sync/ssb.h"
+// #include <boost/lockfree/queue.hpp>
+// #include <complex.h>
+// #include <cstdint>
+// #include <cstdio>
+// #include <cstdlib>
+// #include <cstring>
+// #include <mutex>
+// #include <pthread.h>
+// #include <srsran/phy/common/phy_common.h>
+// #include <srsran/phy/common/phy_common_nr.h>
+// #include <srsran/phy/phch/pbch_msg_nr.h>
+// #include <srsran/phy/utils/vector.h>
+// #include <stdlib.h>
+// #include <sys/types.h>
+// #include <thread>
+
+// class mib_decoder {
+// public:
+//   bool init(const agent_config_t &conf, uint32_t frame_len);
+//   bool decode_mib(cf_t *buffer);
+//   bool add_frame_to_queue(cf_t *buffer);
+//   void run_decoder();
+//   bool start_thread();
+//   void stop_thread();
+
+//   srsran_mib_nr_t request_mib();
+
+//   mib_decoder();
+//   ~mib_decoder();
+
+// private:
+//   bool decoder_running;
+//   srsran_ssb_t ssb;
+//   srsran_ssb_args_t ssb_args;
+//   srsran_ssb_cfg_t ssb_cfg;
+//   uint32_t N_id;
+//   uint32_t sf_len;
+//   boost::lockfree::queue<cf_t *> subframe_queue;
+//   std::thread decoder_thread;
+
+//   std::mutex mib_mutex;
+//   srsran_mib_nr_t latest_mib;
+// };

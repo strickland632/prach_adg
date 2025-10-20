@@ -12,8 +12,10 @@ g_center_freq_hz: .850e9
 g_tx_gain_db: 0.0
 
 
+rf:
 
-
+    device: "zmq"
+    device_args: "tx_port=tcp://172.22.0.2:2001,rx_port=tcp://172.22.0.1:2000"
 # #from SIB
 # #config_index: 0
 # msg1_FDM: one
@@ -38,14 +40,14 @@ g_tx_gain_db: 0.0
 
 
 
-rf:
-    device: uhd #or zmq
-    device_args: "type=b200" #?/?//??? below would be in that?
-    # args:
+# rf:
+#     device: uhd #or zmq
+#     device_args: "type=b200" #?/?//??? below would be in that?
+#     # args:
     #     g_tx_rate: 1.92e6
     #     g_center_freq_hz: .850e9
-    #     g_tx_gain_db: 0.0
-    filepath: "./file" #is this to the device?
+    # #     g_tx_gain_db: 0.0
+    # filepath: "./file" #is this to the device?
 
 
 # look at .dat files
