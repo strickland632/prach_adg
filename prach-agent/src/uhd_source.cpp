@@ -17,7 +17,6 @@ source_error_t UHDSource::create(YAML::Node rf_config) {
 		usrp->set_rx_freq(uhd::tune_request_t(validate<double>(rf_config, "freq")));
 		usrp->set_rx_gain(validate<double>(rf_config, "gain"));
 
-    //msg is what you would ajust in main? fill it put to send? confised
 		res.msg = "";
 		res.type = SOURCE_SUCCESS;
   } catch (const std::exception& e) {
@@ -29,7 +28,7 @@ source_error_t UHDSource::create(YAML::Node rf_config) {
 }
 
 // Collect IQ data using UHD
-source_error_t UHDSource::recv(cf_t* buffer,  size_t nof_samples) {
+source_error_t UHDSource::recv(cf_t_1* buffer,  size_t nof_samples) {
   source_error_t res = {};
 
   try {
@@ -37,7 +36,7 @@ source_error_t UHDSource::recv(cf_t* buffer,  size_t nof_samples) {
     uhd::rx_streamer::sptr rx_stream = usrp->get_rx_stream(stream_args);
     const size_t samps_per_buff = rx_stream->get_max_num_samps();
 
-    std::vector<cf_t> tmp(samps_per_buff);
+    std::vector<cf_t_1> tmp(samps_per_buff);
     uhd::rx_metadata_t md;
 
     uhd::stream_cmd_t stream_cmd(

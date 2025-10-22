@@ -1,4 +1,5 @@
 // prach_tx.cc
+#define _GLIBCXX_USE_CXX11_ABI 0
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
@@ -9,12 +10,14 @@
 #include <string>
 #include <sys/time.h>
 
+
+
 extern "C" {
 #include "srsran/srsran.h"
 }
 
 #include "args.h"
-#include "source.h"   // <-- device abstraction (UHD, ZMQ, etc.) chosen by config
+#include "source.h"   // <-- device
 
 #define MAX_LEN 70176
 
@@ -25,7 +28,7 @@ static inline unsigned long long us_since(const timeval& a, const timeval& b)
          (unsigned long long)(b.tv_usec - a.tv_usec);
 }
 
-// ---------- Pack TX parameters for one PRACH burst ----------
+// ---------- struct to send burst
 struct PrachBurst {
   const cf_t* samples        = nullptr;  // pointer to CP+sequence samples
   size_t      nsamps         = 0;        // total samples to send (CP + sequence)
@@ -41,10 +44,10 @@ struct PrachBurst {
 };
 
 // ---------- EXPECTED source.h API (adjust names if your header differs) ----------
-// typedef struct rf_source rf_source_t;
-// rf_source_t* rf_open(const char* device, const char* device_args);
-// int          rf_cfg_tx(rf_source_t* h, double rate_hz, double freq_hz, double gain_db);
-// int          rf_set_time_now(rf_source_t* h, double seconds);
+typedef struct rf_source rf_source_t;
+rf_source_t* create(YAML::Node rf_config);
+// int          recv(cf_t_1* buffer, size_t nof_samples);
+// int          send(cf_t_1* buffer, size_t nof_samples);
 // int          rf_send_cf32_burst(rf_source_t* h, const void* samples, size_t nsamps, double start_in_s);
 // void         rf_close(rf_source_t* h);
 
@@ -59,7 +62,7 @@ static void tx_send_prach(rf_source_t* rf, const PrachBurst& burst)
     throw std::runtime_error("rf_cfg_tx() failed");
   }
 
-  // schedule SoB a bit in the future (relative time)
+  // schedule SoB
   if (rf_send_cf32_burst(rf, (const void*)burst.samples, burst.nsamps, burst.start_in_s) != 0) {
     throw std::runtime_error("rf_send_cf32_burst() failed");
   }
@@ -67,7 +70,7 @@ static void tx_send_prach(rf_source_t* rf, const PrachBurst& burst)
 
 int main(int argc, char** argv)
 {
-  // ---- read --config <file> only (everything else from YAML) ----
+  // ---- read prach config 
   std::string config_file = "basic_prach.yaml";
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--config") == 0 && i + 1 < argc) {
@@ -76,7 +79,7 @@ int main(int argc, char** argv)
     }
   }
   if (config_file.empty()) {
-    std::fprintf(stderr, "Usage: %s --config <config.yaml>\n", argv[0]);
+    std::fprintf(stderr, "Usage: %s --config <basic_prach.yaml>\n", argv[0]);
     return EXIT_FAILURE;
   }
 
@@ -123,10 +126,10 @@ int main(int argc, char** argv)
   std::printf("PRACH configured in %llu us\n", us_since(t0, t1));
 
   // ---- Open RF device via source.h (device + device_args come from YAML) ----
-  rf_source_t* rf = rf_open(args.device.c_str(), args.device_args.c_str());
+  rf_source_t* rf = rf_open(args.rf.device.c_str(), args.rf.device_args.c_str());
   if (!rf) {
     std::fprintf(stderr, "rf_open(%s, %s) failed\n",
-                 args.device.c_str(), args.device_args.c_str());
+                 args.rf.device.c_str(), args.rf.device_args.c_str());
     srsran_prach_free(&prach);
     return EXIT_FAILURE;
   }
@@ -134,7 +137,7 @@ int main(int argc, char** argv)
   // Zero the device timebase (no GPSDO/PPS in this simple example)
   if (rf_set_time_now(rf, 0.0) != 0) {
     std::fprintf(stderr, "rf_set_time_now() failed\n");
-    rf_close(rf);
+    //rf_close(rf);
     srsran_prach_free(&prach);
     return EXIT_FAILURE;
   }
@@ -147,7 +150,7 @@ int main(int argc, char** argv)
     // Generate PRACH: [CP (N_cp) | sequence (N_seq)]
     if (srsran_prach_gen(&prach, seq_index, 0 /* freq-shift idx */, preamble) != SRSRAN_SUCCESS) {
       std::fprintf(stderr, "srsran_prach_gen failed at seq=%u\n", seq_index);
-      rf_close(rf);
+      //rf_close(rf);
       srsran_prach_free(&prach);
       return EXIT_FAILURE;
     }
@@ -165,7 +168,7 @@ int main(int argc, char** argv)
       tx_send_prach(rf, burst);
     } catch (const std::exception& e) {
       std::fprintf(stderr, "TX error: %s\n", e.what());
-      rf_close(rf);
+      //rf_close(rf);
       srsran_prach_free(&prach);
       return EXIT_FAILURE;
     }
@@ -179,7 +182,7 @@ int main(int argc, char** argv)
                             prach.N_seq,              // sequence length
                             indices, &n_indices) != SRSRAN_SUCCESS) {
       std::fprintf(stderr, "srsran_prach_detect failed at seq=%u\n", seq_index);
-      rf_close(rf);
+      //rf_close(rf);
       srsran_prach_free(&prach);
       return EXIT_FAILURE;
     }
@@ -192,13 +195,13 @@ int main(int argc, char** argv)
       std::printf("  [OK]\n");
     } else {
       std::printf("  [MISMATCH: expected %u]\n", seq_index);
-      rf_close(rf);
+      //rf_close(rf);
       srsran_prach_free(&prach);
       return EXIT_FAILURE;
     }
   }
 
-  rf_close(rf);
+  //rf_close(rf);
   srsran_prach_free(&prach);
   std::printf("All preambles 0..63 generated, transmitted, and verified. Done.\n");
   return EXIT_SUCCESS;

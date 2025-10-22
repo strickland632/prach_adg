@@ -1,9 +1,10 @@
+#define _GLIBCXX_USE_CXX11_ABI 0
 #include "zmq_source.h"
 #include <iostream>
 #include <fstream>
 #include <complex>
 
-source_error_t create(YAML::Node rf_config) {
+source_error_t ZMQSource::create(YAML::Node rf_config) {
 	// TODO: implement
 	source_error_t res = {};
 	res.msg = "Not implemented";
@@ -11,7 +12,7 @@ source_error_t create(YAML::Node rf_config) {
 	return res;
 }
 
-source_error_t recv(cf_t* buffer, size_t nof_samples) {
+source_error_t ZMQSource::recv(cf_t_1* buffer, size_t nof_samples) {
 	// TODO: implement
 	source_error_t res = {};
 	res.msg = "Not implemented";
@@ -19,12 +20,12 @@ source_error_t recv(cf_t* buffer, size_t nof_samples) {
 	return res;
 }
 
-source_error_t send(cf_t* buffer, size_t nof_samples) {
+source_error_t ZMQSource::send(cf_t_1* buffer, size_t nof_samples) {
 	// TODO: implement
 	source_error_t res = {};
 	res.msg = "Not implemented";
 	res.type = SOURCE_NOT_IMPLEMENTED;
-	return res;
+	return res; 
 }
 
 /*

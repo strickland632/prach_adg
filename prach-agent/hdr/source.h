@@ -7,7 +7,7 @@
 #include <string>
 #include <complex>
 
-typedef std::complex<float> cf_t;
+typedef std::complex<float> cf_t_1;
 
 typedef enum source_error_type_e {
   SOURCE_SUCCESS = 0,
@@ -27,9 +27,9 @@ typedef struct source_error_s {
 class Source {
   public:
     virtual ~Source() = default;
-    virtual source_error_t create(YAML::Node rf_config);
-    virtual source_error_t recv(cf_t* buffer, size_t nof_samples) = 0;
-    virtual source_error_t send(cf_t* buffer, size_t nof_samples) = 0;
+    virtual source_error_t create(YAML::Node rf_config) = 0;
+    virtual source_error_t recv(cf_t_1* buffer, size_t nof_samples) = 0;
+    virtual source_error_t send(cf_t_1* buffer, size_t nof_samples) = 0;
 };
 
 // SOURCE factory function

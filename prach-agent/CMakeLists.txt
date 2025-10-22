@@ -4,7 +4,7 @@ set(AGENT_SRC_DIR src)
 set(AGENT_HDR_DIR hdr)
 
 # Don't treat directories as sources
-file(GLOB_RECURSE AGENT_SOURCES LIST_DIRECTORIES false "${AGENT_SRC_DIR}/*.cc")
+file(GLOB_RECURSE AGENT_SOURCES LIST_DIRECTORIES false "${AGENT_SRC_DIR}/*.cpp")
 
 add_executable(prach-agent ${AGENT_SOURCES})
 
@@ -41,8 +41,8 @@ target_link_libraries(prach-agent PRIVATE
     support
     srslog
     srsran_rf
-    srsran_common
-   
+    
+    -Wl,--end-group
    
 
     # External deps discovered by top-level

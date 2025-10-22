@@ -5,6 +5,17 @@
   if (!node[#key]) {                                                           \
     throw std::runtime_error("Missing required field in config: '" #key "'");  \
   }
+// args.cpp
+bool     all_args_s::is_nr = false;
+uint32_t all_args_s::nof_prb = 0;
+uint32_t all_args_s::config_idx = 0;
+uint32_t all_args_s::root_seq_idx = 0;
+uint32_t all_args_s::zero_corr_zone = 0;
+uint32_t  all_args_s::freq_offset = 0;
+uint32_t all_args_s::num_ra_preambles = 0;
+double   all_args_s::g_tx_rate = 0.0;
+double   all_args_s::g_center_freq_hz = 0.0;
+double   all_args_s::g_tx_gain_db = 0.0;
 
 // all_args_t parseConfig(
 //     const std::string &filename) { // change the filename to the real filename

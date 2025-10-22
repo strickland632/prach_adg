@@ -14,8 +14,8 @@ g_tx_gain_db: 0.0
 
 rf:
 
-    device: "zmq"
-    device_args: "tx_port=tcp://172.22.0.2:2001,rx_port=tcp://172.22.0.1:2000"
+    device: "uhd"
+    device_args: "type=b200,tx_port=tcp://172.22.0.2:2001,rx_port=tcp://172.22.0.1:2000"
 # #from SIB
 # #config_index: 0
 # msg1_FDM: one
