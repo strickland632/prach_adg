@@ -1,9 +1,9 @@
-# prach:
+
 is_nr: false
 nof_prb: 50 #carrier bandwith frp, PRB- physical resource block
 config_idx: 0 #given direct from SIB1
 root_seq_idx: 1 #given from SIB 1839: 1
-zero_corr_zone: 15 #given direct from SIB1
+zero_corr_zone: 15 #given direct from SIB1, tells distinct cyclic shifts per root
 freq_offset: 1 #msg1_teq_start from sib?
 num_ra_preambles: 8 #from SIB?
 
@@ -15,7 +15,7 @@ g_tx_gain_db: 0.0
 rf:
 
     device: "uhd"
-    device_args: "type=b200,tx_port=tcp://172.22.0.2:2001,rx_port=tcp://172.22.0.1:2000"
+    device_args: "type=b200"
 # #from SIB
 # #config_index: 0
 # msg1_FDM: one
