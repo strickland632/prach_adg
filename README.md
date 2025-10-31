@@ -1,15 +1,43 @@
 # sarah
 
+
+sudo docker build -t prach-agent:latest .
+
+sudo docker run --privileged --net host -it -v /dev/bus/usb:/dev/bus/usb -v $(uhd_config_info --images-dir | awk '{print $3}'):/usr/share/uhd/images -v /home/oaic/prach-agent/out:/app/out -v /home/oaic/prach-agent/configs/basic_prach.yaml:/app/configs/basic_prach.yaml prach-agent bash 
+
+prach-agent -c ./configs/basic_prach.yaml
+
+
+sudo docker run --privileged --net host -it -v /dev/bus/usb:/dev/bus/usb -v $(uhd_config_info --images-dir | awk '{print $3}'):/usr/share/uhd/images -v /home/oaic/prach-agent/out:/app/out -v /home/oaic/prach-agent/configs/basic_prach.yaml:/app/configs/basic_prach.yaml prach-agent bash 
+
+
+--mount type=bind,source=/home/oaic/prach-agent/out,target=/app/out prach-agent
+<!-- 
+sudo docker run --privileged --net host -it -v /dev/bus/usb:/dev/bus/usb -v $(uhd_config_info --images-dir | awk '{print $3}'):/usr/share/uhd/images -v /home/oaic/prach-agent/configs/basic_prach.yaml:/app/configs/basic_prach.yaml prach-agent bash
+prach-agent -c ./configs/basic_prach.yaml
+
 sudo docker run --rm -it prach-agent:latest bash
-cd ./app./build??? 
+cd ./build ??? 
 make -j20 ????? i dunno
+??
+./prach-agent/prach-agent -c /app/configs/basic_prach.yaml
+??
+
 
 //to compile/run ATTACK
 cd ./prach-agent
 sudo docker build -t prach-agent:latest .
 sudo docker run --rm -it prach-agent:latest --help
+ -->
 
-sudo ./startup.sh /home/oaic/prach-agent/configs/uhd/basic_prach.yaml
+
+
+
+sudo ./startup.sh /home/oaic/prach-agent/configs/basic_prach.yaml
+
+
+
+
 
 //to run core
 cd srsRAN_Project/docker
@@ -17,14 +45,16 @@ sudo docker compose up --build 5gc
 
 
 //to run gnb
-//zmq
-cd ran-tester-ue/configs/zmq
-sudo docker run --privileged --net host -it -v ./gnb_zmq_docker.yaml:/gnb.yaml srsran_gnb bash
-//done for me? gnb -c /gnb.yaml
 
 //uhd - could work for zmq its a sh file w pass in path to yaml? how do images work bruhh do i just run yaml for prach agent? ponder check out his sh to see: vim ./run_gnb.sh 
 cd ran-tester-ue/
 sudo ./run_gnb.sh /home/oaic/ran-tester-ue/configs/uhd/gnb_uhd.yaml
+
+//zmq
+cd ran-tester-ue/configs/zmq
+sudo docker run --privileged --net host -it -v ./gnb_zmq_docker.yaml:/gnb.yaml srsran_gnb bashh
+//done for me? gnb -c /gnb.yaml
+
 
 
 
@@ -32,6 +62,8 @@ sudo ./run_gnb.sh /home/oaic/ran-tester-ue/configs/uhd/gnb_uhd.yaml
 //what tf did this guy do cmd eddition
 uhd_config_info --images-dir
 uhd_config_info --images-dir | awk '{print $3}'
+
+//make sure to set env to uhd variables dir
 
 
 

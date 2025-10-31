@@ -23,11 +23,10 @@ double   all_args_s::g_tx_gain_db = 0.0;
 //   YAML::Node config =
 //       YAML::LoadFile(filename); // change the filename to its real filename
 
-all_args_t parseConfig(
-    const std::string &filename) { // change the filename to the real filename
+all_args_t parseConfig(const std::string &filename) 
+{ 
 
-  YAML::Node config =
-      YAML::LoadFile(filename); // change the filename to its real filename
+  YAML::Node config = YAML::LoadFile(filename); 
 
   REQUIRE_FIELD(config, is_nr);
   REQUIRE_FIELD(config, nof_prb);
@@ -43,9 +42,9 @@ all_args_t parseConfig(
 
 
   REQUIRE_FIELD(config, rf);
-  REQUIRE_FIELD(config, device);
-  REQUIRE_FIELD(config, device_args);
-  REQUIRE_FIELD(config, filepath);
+  REQUIRE_FIELD(config["rf"], device);
+  REQUIRE_FIELD(config["rf"], device_args);
+  // REQUIRE_FIELD(config["rf"], filepath);
 
 
   all_args_t args; // an instance of struct
@@ -66,7 +65,7 @@ all_args_t parseConfig(
   // rf_args.filepath = congif["rf"]["filepath"].as<std::string>();
   args.rf.device = config["rf"]["device"].as<uint32_t>();
   args.rf.device_args = config["rf"]["device_args"].as<uint32_t>();
-  args.rf.filepath = config["rf"]["filepath"].as<std::string>();
+  // args.rf.filepath = config["rf"]["filepath"].as<std::string>();
   return args;
 }
 

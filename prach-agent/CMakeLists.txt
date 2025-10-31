@@ -41,8 +41,8 @@ target_link_libraries(prach-agent PRIVATE
     support
     srslog
     srsran_rf
-    
-    -Wl,--end-group
+    srsran_common
+   
    
 
     # External deps discovered by top-level
@@ -109,3 +109,9 @@ endif()
 
 # Install
 install(TARGETS prach-agent DESTINATION /usr/local/bin OPTIONAL)
+
+
+
+
+
+
