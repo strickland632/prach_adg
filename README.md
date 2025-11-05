@@ -1,11 +1,40 @@
 # sarah
 
+cd ./prach-agent
 
 sudo docker build -t prach-agent:latest .
 
 sudo docker run --privileged --net host -it -v /dev/bus/usb:/dev/bus/usb -v $(uhd_config_info --images-dir | awk '{print $3}'):/usr/share/uhd/images -v /home/oaic/prach-agent/out:/app/out -v /home/oaic/prach-agent/configs/basic_prach.yaml:/app/configs/basic_prach.yaml prach-agent bash 
 
 prach-agent -c ./configs/basic_prach.yaml
+
+
+
+
+
+
+seq= 0  detect_time=   244 us  found=1  [OK]
+seq= 1  detect_time=   156 us  found=1  [OK]
+seq= 2  detect_time=   141 us  found=1  [OK]
+seq= 3  detect_time=   127 us  found=1  [OK]
+seq= 4  detect_time=   124 us  found=1  [OK]
+seq= 5  detect_time=   148 us  found=1  [OK]
+seq= 6  detect_time=   133 us  found=1  [OK]
+seq= 7  detect_time=   133 us  found=1  [OK]
+seq= 8  detect_time=   138 us  found=1  [OK]
+seq= 9  detect_time=   133 us  found=1  [OK]
+seq=10  detect_time=   136 us  found=1  [OK]
+seq=11  detect_time=   146 us  found=1  [OK]
+seq=12  detect_time=   144 us  found=1  [OK]
+seq=13  detect_time=   171 us  found=1  [OK]
+seq=14  detect_time=   148 us  found=1  [OK]
+All preambles 0..63 generated, transmitted, and verified. Done.
+Segmentation fault (core dumped)
+
+
+
+
+
 
 
 sudo docker run --privileged --net host -it -v /dev/bus/usb:/dev/bus/usb -v $(uhd_config_info --images-dir | awk '{print $3}'):/usr/share/uhd/images -v /home/oaic/prach-agent/out:/app/out -v /home/oaic/prach-agent/configs/basic_prach.yaml:/app/configs/basic_prach.yaml prach-agent bash 
@@ -54,6 +83,17 @@ sudo ./run_gnb.sh /home/oaic/ran-tester-ue/configs/uhd/gnb_uhd.yaml
 cd ran-tester-ue/configs/zmq
 sudo docker run --privileged --net host -it -v ./gnb_zmq_docker.yaml:/gnb.yaml srsran_gnb bashh
 //done for me? gnb -c /gnb.yaml
+
+
+//to run uu-agent
+cd ./uu-agent
+sudo docker build -t uu-agent:latest .
+
+sudo docker run --privileged --net host -it -v /dev/bus/usb:/dev/bus/usb -v $(uhd_config_info --images-dir | awk '{print $3}'):/usr/share/uhd/images -v /home/oaic/uu-agent/out:/app/out -v /home/oaic/uu-agent/configs/uhd_collection.conf:/app/configs/uhd_collection.conf uu-agent bash 
+
+uuagent -c ./configs/uhd_collection.conf
+
+
 
 
 

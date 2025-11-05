@@ -1,21 +1,26 @@
 
-is_nr: false
+is_nr: true
 nof_prb: 50 #carrier bandwith frp, PRB- physical resource block
 config_idx: 0 #given direct from SIB1
 root_seq_idx: 1 #given from SIB 1839: 1
 zero_corr_zone: 15 #given direct from SIB1, tells distinct cyclic shifts per root
 freq_offset: 1 #msg1_teq_start from sib?
-num_ra_preambles: 8 #from SIB?
+num_ra_preambles: 64 #from SIB?
 
-g_tx_rate: 1.92e6
-g_center_freq_hz: .850e9
-g_tx_gain_db: 0.0
+# g_tx_rate: 1.92e6
+# g_center_freq_hz: .850e9
+# g_tx_gain_db: 0.0
 
+
+# Match RX RF chain
+g_tx_rate: 23.04e6       # = 23040000
+g_center_freq_hz: 1.84205e9  # = 1842050000
+g_tx_gain_db: 0.0        # bump this if power is too low
 
 rf:
 
     device: "uhd"
-    device_args: "type=b200"
+    device_args: "type=b200,clock=internal"
 # #from SIB
 # #config_index: 0
 # msg1_FDM: one
