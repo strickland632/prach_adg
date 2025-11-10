@@ -13,24 +13,6 @@ prach-agent -c ./configs/basic_prach.yaml
 
 
 
-seq= 0  detect_time=   244 us  found=1  [OK]
-seq= 1  detect_time=   156 us  found=1  [OK]
-seq= 2  detect_time=   141 us  found=1  [OK]
-seq= 3  detect_time=   127 us  found=1  [OK]
-seq= 4  detect_time=   124 us  found=1  [OK]
-seq= 5  detect_time=   148 us  found=1  [OK]
-seq= 6  detect_time=   133 us  found=1  [OK]
-seq= 7  detect_time=   133 us  found=1  [OK]
-seq= 8  detect_time=   138 us  found=1  [OK]
-seq= 9  detect_time=   133 us  found=1  [OK]
-seq=10  detect_time=   136 us  found=1  [OK]
-seq=11  detect_time=   146 us  found=1  [OK]
-seq=12  detect_time=   144 us  found=1  [OK]
-seq=13  detect_time=   171 us  found=1  [OK]
-seq=14  detect_time=   148 us  found=1  [OK]
-All preambles 0..63 generated, transmitted, and verified. Done.
-Segmentation fault (core dumped)
-
 
 
 
