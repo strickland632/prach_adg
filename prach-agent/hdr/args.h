@@ -47,6 +47,16 @@ typedef struct all_args_s {
 
 all_args_t parseConfig(const std::string &filename);
 
+
+template<typename T>
+T validate(const YAML::Node& node, const std::string& key)
+{
+    if (!node[key]) {
+        throw std::runtime_error("Missing required key: '" + key + "'");
+    }
+    return node[key].as<T>();
+}
+
 // void overrideConfig(all_args_t &args, int argc, char *argv[]);
 
 #endif // !ARGS_H

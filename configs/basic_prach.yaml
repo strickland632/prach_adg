@@ -21,4 +21,4 @@ rf:
 
     device: "uhd"
     device_args: "type=b200,clock=internal"
-    iq_file: "./out/uhd_1.cf32"
+    # iq_file: "./out/uhd_1.cf32"

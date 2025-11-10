@@ -17,8 +17,6 @@ prach-agent -c ./configs/basic_prach.yaml
 
 
 
-
-
 sudo docker run --privileged --net host -it -v /dev/bus/usb:/dev/bus/usb -v $(uhd_config_info --images-dir | awk '{print $3}'):/usr/share/uhd/images -v /home/oaic/prach-agent/out:/app/out -v /home/oaic/prach-agent/configs/basic_prach.yaml:/app/configs/basic_prach.yaml prach-agent bash 
 
 
