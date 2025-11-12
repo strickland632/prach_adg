@@ -8,6 +8,7 @@
 #include <complex>
 #include <sys/time.h>
 #include <unistd.h>
+#include <yaml-cpp/yaml.h>
 
 
 #include <uhd/usrp/multi_usrp.hpp>
@@ -21,6 +22,7 @@ extern "C" {
 
 
 #include "args.h"
+#include "source.h"
 
 
 #define MAX_LEN 70176
@@ -30,70 +32,70 @@ extern "C" {
 
 
 
-// UHD TX: send PRACH CP+sequence -> replace w source
-static void tx_send_prach(const uhd::usrp::multi_usrp::sptr& usrp,
-                         const cf_t* buf,
-                         size_t nsamps_total,
-                         double tx_rate,
-                         double center_freq_hz,
-                         double tx_gain_db,
-                         double seconds_in_future = 0.050 /* 50 ms */)
-{
- // Configure USRP (rate/freq/gain)
- usrp->set_tx_rate(tx_rate);
- usrp->set_tx_gain(tx_gain_db);
- usrp->set_tx_freq(uhd::tune_request_t(center_freq_hz));
+// // UHD TX: send PRACH CP+sequence -> replace w source
+// static void tx_send_prach(const uhd::usrp::multi_usrp::sptr& usrp,
+//                          const cf_t* buf,
+//                          size_t nsamps_total,
+//                          double tx_rate,
+//                          double center_freq_hz,
+//                          double tx_gain_db,
+//                          double seconds_in_future = 0.050 /* 50 ms */)
+// {
+//  // Configure USRP (rate/freq/gain)
+//  usrp->set_tx_rate(tx_rate);
+//  usrp->set_tx_gain(tx_gain_db);
+//  usrp->set_tx_freq(uhd::tune_request_t(center_freq_hz));
 
 
- // TX streamer: fc32 (host) -> sc16 (wire)
- uhd::stream_args_t sargs("fc32", "sc16");
- auto tx = usrp->get_tx_stream(sargs);
- const size_t mtu = tx->get_max_num_samps();
+//  // TX streamer: fc32 (host) -> sc16 (wire)
+//  uhd::stream_args_t sargs("fc32", "sc16");
+//  auto tx = usrp->get_tx_stream(sargs);
+//  const size_t mtu = tx->get_max_num_samps();
 
 
- // Schedule start a bit in the future for timing
- const auto now     = usrp->get_time_now();
- const auto tx_time = now + uhd::time_spec_t(seconds_in_future);
+//  // Schedule start a bit in the future for timing
+//  const auto now     = usrp->get_time_now();
+//  const auto tx_time = now + uhd::time_spec_t(seconds_in_future);
 
 
- uhd::tx_metadata_t md{};
- md.has_time_spec  = true;
- md.time_spec      = tx_time;
- md.start_of_burst = true;
- md.end_of_burst   = false;
+//  uhd::tx_metadata_t md{};
+//  md.has_time_spec  = true;
+//  md.time_spec      = tx_time;
+//  md.start_of_burst = true;
+//  md.end_of_burst   = false;
 
 
- // Chunked send
- size_t offset = 0;
- while (offset < nsamps_total) {
-   const size_t to_send = std::min(mtu, nsamps_total - offset);
-   const void*  chunk   = static_cast<const void*>(buf + offset);
-   const size_t sent    = tx->send(chunk, to_send, md);
+//  // Chunked send
+//  size_t offset = 0;
+//  while (offset < nsamps_total) {
+//    const size_t to_send = std::min(mtu, nsamps_total - offset);
+//    const void*  chunk   = static_cast<const void*>(buf + offset);
+//    const size_t sent    = tx->send(chunk, to_send, md);
 
 
-   // Keep this safety check; if it trips, you probably want to know.
-   if (sent != to_send) {
-     throw std::runtime_error("Short send on PRACH burst");
-   }
+//    // Keep this safety check; if it trips, you probably want to know.
+//    if (sent != to_send) {
+//      throw std::runtime_error("Short send on PRACH burst");
+//    }
 
 
-   md.start_of_burst = false;  // only first packet has SoB + time
-   md.has_time_spec  = false;
-   offset += sent;
- }
+//    md.start_of_burst = false;  // only first packet has SoB + time
+//    md.has_time_spec  = false;
+//    offset += sent;
+//  }
 
 
- // End of burst
- md.end_of_burst = true;
- int* end[1] = {nullptr};
- tx->send(end, 0, md);
-}
+//  // End of burst
+//  md.end_of_burst = true;
+//  int* end[1] = {nullptr};
+//  tx->send(end, 0, md);
+// }
 
 
 #include <fstream>
 #include <complex>
 
-
+//do this in source file intead?
 void save_iq(std::ofstream& out, const cf_t* buf, std::size_t nsamps)
 {
     if (!out) {
@@ -124,15 +126,24 @@ int main(int argc, char** argv)
  }
 
 
+
  // load app config
  all_args_t args{};
  args = parseConfig(config_file);
 
 
  // Create USRP
- auto usrp = uhd::usrp::multi_usrp::make(args.rf.device_args);
+ std::unique_ptr<Source> src = create_source_instance(args.rf.device);
+
+ //cheat to match data types
+ YAML::Node rf;
+ rf["device_args"] = YAML::Load(args.rf.device_args);
+
+  /////if uhd/zmq/what changes 
+ source_error_t uspr = src->create(rf);
+//  auto usrp = uhd::usrp::multi_usrp::make(args.rf.device_args);
  // Simple time base init
- usrp->set_time_now(uhd::time_spec_t(0.0));
+//  usrp->set_time_now(uhd::time_spec_t(0.0));
 
 
  // Build PRACH config
@@ -151,7 +162,10 @@ int main(int argc, char** argv)
 
 
  // PRACH buffer (cf_t is srsRAN complex float)
- cf_t preamble[MAX_LEN];
+ cf_t preamble[MAX_LEN]; //sarah
+ typedef std::complex<float> cf_t_1;
+ cf_t_1 preamble1{__real__ preamble,__imag__ preamble}; 
+
  memset(preamble, 0, sizeof(preamble));
 
 
@@ -176,9 +190,7 @@ int main(int argc, char** argv)
  //  printf("PRACH configured in %llu us\n", us_since(t0, t1));
 
 
- // Generate & TX preambles: SHORT BURSTS ONLY
- //
- // Use num_ra_preambles from config. If it's 0, fall back to 64.
+ // Generate & TX preambles
 
 
  uint32_t max_preambles = (args.num_ra_preambles > 0)
@@ -195,7 +207,7 @@ int main(int argc, char** argv)
    return (size_t)(prach.N_cp + prach.N_seq);
  }();
 
-    std::ofstream iq_out("./out/prach_dump4.cf32", std::ios::binary);
+    std::ofstream iq_out(args.rf.output_file, std::ios::binary);
     if (!iq_out) {
         throw std::runtime_error("Failed to open ./out/prach_dump2.cf32");
     }
@@ -206,16 +218,18 @@ int main(int argc, char** argv)
  const std::size_t gap_samps = static_cast<std::size_t>(
   std::llround(burst_spacing * args.g_tx_rate)
  );
- std::vector<cf_t> gap(gap_samps);
 
+ ///make a blank gap tp put between bursts in iq file
+ std::vector<cf_t> gap(gap_samps);
  std::fill(gap.begin(), gap.end(), (cf_t)0.0f);
-//  while (1)
-//  {
+
 
     
       
   
    for (uint32_t seq_index = 0; seq_index < max_preambles; ++seq_index) {
+      //save zeros for space between transmissions
+      save_iq(iq_out, gap.data(), gap.size());
      // Generate: preamble = [ CP (N_cp) | sequence (N_seq) ]
      if (srsran_prach_gen(&prach, seq_index, 0 /* freq-shift idx */, preamble) != SRSRAN_SUCCESS) {
        // fprintf(stderr, "srsran_prach_gen failed at seq=%u\n", seq_index);
@@ -223,29 +237,28 @@ int main(int argc, char** argv)
        return EXIT_FAILURE;
      }
 
-
+     preamble1{__real__ preamble,__imag__ preamble}; 
 
      double offset_s = base_offset_s + burst_spacing * seq_index;
 
+     src->send(preamble1, nsamps_total);
 
-     // uhd_source.send(preamble, nsamps_total,
-     //           args.g_tx_rate, args.g_center_freq_hz, args.g_tx_gain_db,
-     //           offset_s);
+
+    //  uhd_source.send(preamble, nsamps_total,
+    //            args.g_tx_rate, args.g_center_freq_hz, args.g_tx_gain_db,
+    //            offset_s);
 
 
      // Transmit CP + sequence over UHD
-     tx_send_prach(usrp,
-                   preamble,
-                   nsamps_total,
-                   args.g_tx_rate,
-                   args.g_center_freq_hz,
-                   args.g_tx_gain_db,
-                   offset_s);
+    //  tx_send_prach(usrp,
+    //                preamble,
+    //                nsamps_total,
+    //                args.g_tx_rate,
+    //                args.g_center_freq_hz,
+    //                args.g_tx_gain_db,
+    //                offset_s);
      save_iq(iq_out, preamble, nsamps_total);
     
-     if (seq_index + 1 < max_preambles) {
-        save_iq(iq_out, gap.data(), gap.size());
-    }
 
    }
 //  }

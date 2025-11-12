@@ -6,7 +6,9 @@
 #include <stdexcept>
 #include <string>
 #include <complex>
-
+// namespace prach_agent {
+//     typedef std::complex<float> cf_t_1;
+// }
 typedef std::complex<float> cf_t_1;
 
 typedef enum source_error_type_e {

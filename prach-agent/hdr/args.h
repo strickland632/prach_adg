@@ -12,6 +12,7 @@ typedef struct rf_args_s {
   float tx_gain;
   std::string filepath;
   std::string device;
+  std::string output_file;
 
 } rf_args_t;
 //different for zmg/uhd? or do that in main?

@@ -3,6 +3,7 @@
 
 #include "source.h"
 //#include <zmq.hpp>
+#include <complex>
 
 class FileSource : public Source {
 public:

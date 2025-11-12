@@ -4,6 +4,7 @@
 #include "source.h"
 #include <uhd/stream.hpp>
 #include <uhd/usrp/multi_usrp.hpp>
+#include <complex>
 
 class UHDSource : public Source {
 public:

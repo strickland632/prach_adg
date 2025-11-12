@@ -44,6 +44,7 @@ all_args_t parseConfig(const std::string &filename)
   REQUIRE_FIELD(config, rf);
   REQUIRE_FIELD(config["rf"], device);
   REQUIRE_FIELD(config["rf"], device_args);
+  REQUIRE_FIELD(config["rf"], output_file);
   // REQUIRE_FIELD(config["rf"], filepath);
 
 
@@ -62,6 +63,7 @@ all_args_t parseConfig(const std::string &filename)
   
   args.rf.device = config["rf"]["device"].as<std::string>();
   args.rf.device_args = config["rf"]["device_args"].as<std::string>();
+  args.rf.filepath = config["rf"]["output_file"].as<std::string>();
   // args.rf.filepath = config["rf"]["filepath"].as<std::string>();
   return args;
 }
